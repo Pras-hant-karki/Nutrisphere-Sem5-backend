@@ -2,7 +2,7 @@ import express, { Application, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import { connectDatabase } from './database/mongodb';
 import { PORT } from './config';
-import authRoutes from "./routes/auth.route";
+import authRoutes from "./routes/admin/auth.route";
 
 const app: Application = express();
 

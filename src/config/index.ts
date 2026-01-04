@@ -3,8 +3,8 @@ dotenv.config();
 
 export const PORT: number = 
     process.env.PORT ? parseInt(process.env.PORT) : 3000;
-export const MONGODB_URI: string = 
-    process.env.MONGODB_URI || 'mongodb://localhost:27017/defaultdb';
+export const MONGO_URI: string = 
+    process.env.MONGO_URI || 'mongodb://localhost:27017/prashant_db';
 // Application level constants, with fallbacks 
 // if .env variables are not set
 
