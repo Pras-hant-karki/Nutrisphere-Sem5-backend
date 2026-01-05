@@ -2,9 +2,13 @@ import express, { Application, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import { connectDatabase } from './database/mongodb';
 import { PORT } from './config';
-import authRoutes from "./routes/admin/auth.route";
+import authRoutes from "./routes/auth.route";
+import protectedRoutes from "./routes/protected.route";
+import adminRoutes from "./routes/admin/user.route";
 
 const app: Application = express();
+app.use("/api/protected", protectedRoutes);
+app.use("/api/admin/users", adminRoutes);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
