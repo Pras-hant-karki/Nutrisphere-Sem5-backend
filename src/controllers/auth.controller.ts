@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { CreateUserDTO, LoginUserDTO } from "../dtos/user.dto";
-import { UserService } from "../services/admin/user.service";
+import { UserService } from "../services/user.service";
 import z from "zod";
 
 const userService = new UserService();

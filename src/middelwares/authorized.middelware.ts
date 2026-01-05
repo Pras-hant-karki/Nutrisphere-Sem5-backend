@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken"
 import { JWT_SECRET } from "../config";
 import { IUser } from "../models/user.model";
-import { UserRepository } from "../repositories/auth.repository";
+import { UserRepository } from "../repositories/user.repository";
 import { HttpError } from "../errors/http-error";
 
 let userRepository = new UserRepository();
@@ -30,7 +30,7 @@ export async function authorizedMiddelWare(req: Request, res: Response, next: Ne
         if(!decoded || !decoded.id)
             throw new HttpError( 401, "Unauthorized, Invalid Token" );
         
-        const user = await userRepository.getUserById( decoded.id ); // make function async
+        const user = await userRepository.getUserByEmail( decoded.id ); // make function async
         if(!user)
             throw new HttpError( 401, "Unauthorized, User Not Found" );
         
@@ -41,12 +41,7 @@ export async function authorizedMiddelWare(req: Request, res: Response, next: Ne
             { success: false, message: err.message || "Unauthorized" }
         )
     }
-    // if(req.headers && req.headers.authorization){
-    //     return next();
-    // }
-    // return res.status(401).json(
-    //     { success: false, message: "Unauthorized" }
-    // )
+    
 }
 
 export async function adminMiddelWare(req: Request, res: Response, next: NextFunction) {
