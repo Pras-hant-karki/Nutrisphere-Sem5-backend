@@ -6,58 +6,78 @@ import { UserRepository } from "../repositories/user.repository";
 import { HttpError } from "../errors/http-error";
 
 let userRepository = new UserRepository();
+
 declare global {
     namespace Express {
         interface Request {
             user?: Record<string, any> | IUser
         }
     }
-} // creating a tag for user 
-// can use req.user after this
+}
 
+/**
+ * Middleware to verify JWT token and attach user to request
+ * Must be used before accessing req.user in routes
+ */
 export async function authorizedMiddelWare(req: Request, res: Response, next: NextFunction) {
-    // express function can have next function to go to next
-    try{
+    try {
         const authHeader = req.headers.authorization;
-        if(!authHeader || !authHeader.startsWith("Bearer "))
-            throw new HttpError( 401, "Unauthorized, No Bearer Token" );
         
-        const token = authHeader.split(" ")[1]; // "Bearer <token" 0 -> Bearer , 1 -> token
-        if(!token)
-            throw new HttpError( 401, "Unauthorized, Missing Token" );
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            throw new HttpError(401, "Unauthorized - No Bearer Token provided");
+        }
         
-        const decoded = jwt.verify(token, JWT_SECRET) as Record<string, any>; // decoded -> payload
-        if(!decoded || !decoded.id)
-            throw new HttpError( 401, "Unauthorized, Invalid Token" );
+        const token = authHeader.substring(7); // Remove 'Bearer ' prefix
         
-        const user = await userRepository.getUserByEmail( decoded.id ); // make function async
-        if(!user)
-            throw new HttpError( 401, "Unauthorized, User Not Found" );
+        if (!token) {
+            throw new HttpError(401, "Unauthorized - Missing Token");
+        }
+        
+        const decoded = jwt.verify(token, JWT_SECRET) as Record<string, any>;
+        
+        if (!decoded || !decoded.id) {
+            throw new HttpError(401, "Unauthorized - Invalid Token");
+        }
+        
+        const user = await userRepository.getUserById(decoded.id);
+        
+        if (!user) {
+            throw new HttpError(401, "Unauthorized - User Not Found");
+        }
+
+        if (!user.isActive) {
+            throw new HttpError(403, "Account is disabled");
+        }
         
         req.user = user;
         return next();
-    }catch(err: Error | any){
-        return res.status(err.statusCode || 500 ).json(
-            { success: false, message: err.message || "Unauthorized" }
-        )
+    } catch (err: Error | any) {
+        return res.status(err.statusCode || 500).json({
+            success: false,
+            message: err.message || "Unauthorized"
+        });
     }
-    
 }
 
+/**
+ * Middleware to verify admin role
+ * Must be used after authorizedMiddelWare
+ */
 export async function adminMiddelWare(req: Request, res: Response, next: NextFunction) {
-    try{
-        // req.user is set in authorizedMiddleWare
-        // only use role/admin middleWare after user is authorized
-        if(!req.user)
-            throw new HttpError( 401, "Unauthorized, No User found" );
+    try {
+        if (!req.user) {
+            throw new HttpError(401, "Unauthorized - User not found in request");
+        }
 
-        if(req.user.role !== "admin")
-            throw new HttpError( 401, "Unauthorized, Admin only" );
+        if (req.user.role !== 'admin') {
+            throw new HttpError(403, "Forbidden - Admin access required");
+        }
 
         return next();
-    }catch(err: Error | any){
-        return res.status(err.statusCode || 500 ).json(
-            { success: false, message: err.message || "Unauthorized" }
-        )
+    } catch (err: Error | any) {
+        return res.status(err.statusCode || 500).json({
+            success: false,
+            message: err.message || "Forbidden"
+        });
     }
 }

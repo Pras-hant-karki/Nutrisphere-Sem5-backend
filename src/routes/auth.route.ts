@@ -1,11 +1,9 @@
 import { Router } from "express";
-import { AuthController } from "../controllers/auth.controller";
+import { UserController } from "../controllers/auth.controller";
 
-let authController = new AuthController();
 const router = Router();
 
-router.post("/register", authController.register)
-router.post("/login", authController.login)
-// add remaning routes like login, logout, etc.
+router.post("/register", UserController.register);
+router.post("/login", UserController.login);
 
 export default router;

@@ -1,33 +1,47 @@
-import express, { Application, Request, Response } from 'express';
-import bodyParser from 'body-parser';
-import { connectDatabase } from './database/mongodb';
-import { PORT } from './config';
+import express, { Application, Request, Response, NextFunction } from "express";
+import cors from "cors";
+import { connectDatabase } from "./database/mongodb";
+import { PORT } from "./config";
 import authRoutes from "./routes/auth.route";
-import protectedRoutes from "./routes/protected.route";
-import adminRoutes from "./routes/admin/user.route";
 
 const app: Application = express();
-app.use("/api/protected", protectedRoutes);
-app.use("/api/admin/users", adminRoutes);
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// CORS
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:3030"],
+  })
+);
 
-app.use('/api/auth', authRoutes);
-app.get('/', (req: Request, res: Response) => {
-    return res.status(200).json({ success: "true", message: "Welcome to the API" });
+// Body parsing (MUST come before routes)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use("/api/auth", authRoutes);
+
+// Root
+app.get("/", (req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome to the API",
+  });
 });
 
-async function startServer() {
-    await connectDatabase();
+// ✅ GLOBAL ERROR HANDLER (VERY IMPORTANT)
+app.use(
+  (err: any, req: Request, res: Response, next: NextFunction) => {
+    res.status(err.statusCode || 500).json({
+      message: err.message || "Internal server error",
+    });
+  }
+);
 
-    app.listen(
-        PORT,
-        () => {
-            console.log(`Server: http://localhost:${PORT}`);
-        }
-    );
+async function startServer() {
+  await connectDatabase();
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
 }
 
 startServer();
-
