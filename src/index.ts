@@ -3,6 +3,7 @@ import cors from "cors";
 import { connectDatabase } from "./database/mongodb";
 import { PORT } from "./config";
 import authRoutes from "./routes/auth.route";
+import fitnessRoutes from "./routes/fitness.route";
 
 const app: Application = express();
 
@@ -17,8 +18,12 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Static files for uploads
+app.use("/uploads", express.static("uploads"));
+
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/fitness", fitnessRoutes);
 
 // Root
 app.get("/", (req: Request, res: Response) => {
