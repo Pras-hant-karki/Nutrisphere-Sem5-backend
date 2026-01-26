@@ -9,6 +9,7 @@ export interface IUserRepository {
     deleteUser(userId: string | mongoose.Types.ObjectId): Promise<IUser | null>;
     updateProfilePicture(userId: string | mongoose.Types.ObjectId, profilePictureUrl: string): Promise<IUser | null>;
     getProfilePicture(userId: string | mongoose.Types.ObjectId): Promise<string | null>;
+    updateUserByEmail(email: string, userData: Partial<IUser>): Promise<IUser | null>;
 }
 
 export class UserRepository implements IUserRepository {
@@ -52,5 +53,14 @@ export class UserRepository implements IUserRepository {
     //Deletes a user by email
     async deleteUser(email: string): Promise<IUser | null> {
         return await UserModel.findOneAndDelete({ email });
+    }
+
+    //Updates a user by email
+    async updateUserByEmail(email: string, userData: Partial<IUser>): Promise<IUser | null> {
+        return await UserModel.findOneAndUpdate(
+            { email },
+            userData,
+            { new: true }
+        );
     }
 }
