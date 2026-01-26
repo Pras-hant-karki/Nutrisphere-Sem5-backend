@@ -16,7 +16,6 @@ const UserSchema: Schema = new Schema<UserType>(
             unique: true,
             lowercase: true,
             trim: true,
-            match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, "Please enter a valid email"]
         },
         password: { 
             type: String, 
@@ -38,6 +37,10 @@ const UserSchema: Schema = new Schema<UserType>(
 
 export interface IUser extends UserType, Document {
     _id: mongoose.Types.ObjectId;
+    fullName: string;
+    email: string;
+    password: string;
+    role: 'user' | 'admin';
     createdAt: Date;
     updatedAt: Date;
     isActive: Boolean;
