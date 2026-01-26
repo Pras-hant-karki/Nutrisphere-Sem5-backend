@@ -30,6 +30,19 @@ const UserSchema: Schema = new Schema<UserType>(
                 message: "Role must be either 'user' or 'admin'"
             },
             default: 'user',
+        },
+        profilePicture: {
+            type: String,
+            default: null,
+            trim: true
+        },
+        isActive: {
+            type: Boolean,
+            default: true
+        },
+        lastLogin: {
+            type: Date,
+            default: null
         }
     },
     { timestamps: true }
@@ -43,7 +56,7 @@ export interface IUser extends UserType, Document {
     role: 'user' | 'admin';
     createdAt: Date;
     updatedAt: Date;
-    isActive: Boolean;
+    isActive: boolean;
     lastLogin: Date | null;
 }
 
