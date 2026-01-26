@@ -39,7 +39,7 @@ const FitnessContentSchema: Schema = new Schema<IFitnessContent>(
         },
         image: {
             type: String,
-            default: null,
+            required: [true, "Image is required"],
             trim: true
         },
         // video: {

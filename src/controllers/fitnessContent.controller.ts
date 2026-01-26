@@ -17,8 +17,22 @@ export class FitnessContentController {
                 throw new HttpError(403, "Only admins can create fitness content");
             }
 
-            // Validate request body
-            const data = CreateFitnessContentDTO.parse(req.body);
+            // Check if image file was uploaded
+            if (!req.file) {
+                throw new HttpError(400, "Image file is required");
+            }
+
+            // Build the image path
+            const imagePath = `/fitness_photos/${req.file.filename}`;
+
+            // Prepare the data with image path
+            const bodyData = {
+                ...req.body,
+                image: imagePath
+            };
+
+            // Validate request body with image
+            const data = CreateFitnessContentDTO.parse(bodyData);
 
             // Create content
             const result = await fitnessContentService.createContent(

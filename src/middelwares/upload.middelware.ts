@@ -5,7 +5,7 @@ import fs from "fs";
 import { HttpError } from "../errors/http-error";
 
 // Ensure the uploads directory exists
-const uploadDir = path.join(__dirname, '../../uploads');
+const uploadDir = path.join(__dirname, '../../public/fitness_photos');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }

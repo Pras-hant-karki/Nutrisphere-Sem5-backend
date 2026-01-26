@@ -13,9 +13,11 @@ export const CreateFitnessContentDTO = z.object({
         .max(500, "Description must not exceed 500 characters"),
     
     content: z.string()
-        .min(10, "Content must be at least 10 characters"),
+        .min(10, "Content must be at least 10 characters")
+        .optional(),
     
-    image: z.string().url("Invalid image URL").optional(),
+    image: z.string()
+        .min(1, "Image path is required"),
     
     video: z.string().url("Invalid video URL").optional(),
     
@@ -48,10 +50,12 @@ export const UpdateFitnessContentDTO = z.object({
         .optional(),
     
     content: z.string()
-        .min(20, "Content must be at least 20 characters")
+        .min(10, "Content must be at least 10 characters")
         .optional(),
     
-    image: z.string().url("Invalid image URL").optional(),
+    image: z.string()
+        .min(1, "Image path is required")
+        .optional(),
     
     video: z.string().url("Invalid video URL").optional(),
     
