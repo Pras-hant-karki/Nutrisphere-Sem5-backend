@@ -79,4 +79,23 @@ export class UserService {
 
     return user;
   }
+
+  async updateProfilePicture(email: string, profilePictureUrl: string) {
+    const user = await userRepository.getUserByEmail(email);
+    if (!user) {
+      throw new HttpError(404, "User not found");
+    }
+
+    const updatedUser = await userRepository.updateUserByEmail(email, { profilePicture: profilePictureUrl });
+    return updatedUser;
+  }
+
+  async getProfilePicture(email: string) {
+    const user = await userRepository.getUserByEmail(email);
+    if (!user) {
+      throw new HttpError(404, "User not found");
+    }
+
+    return user.profilePicture;
+  }
 }
