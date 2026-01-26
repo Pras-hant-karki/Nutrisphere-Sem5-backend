@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { RegisterUserDTO, LoginUserDTO } from "../dtos/user.dto";
 import { UserService } from "../services/user.service";
+import { HttpError } from "../errors/http-error";
 
 const userService = new UserService();
 
