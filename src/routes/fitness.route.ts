@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { FitnessContentController } from "../controllers/fitnessContent.controller";
 import { authorizedMiddelWare } from "../middelwares/authorized.middelware";
+import { upload } from "../middelwares/upload.middelware";
 
 const router = Router();
 
@@ -21,22 +22,16 @@ router.get("/admin/:adminId", FitnessContentController.getContentByAdmin);
 router.get("/:contentId", FitnessContentController.getContentById);
 
 /**
- * Protected Routes (Authentication required)
- */
-
-// Like fitness content (Users & Admins)
-router.post("/:contentId/like", authorizedMiddelWare, FitnessContentController.likeContent);
-
-/**
  * Admin Only Routes
  */
 
 // Create fitness content (Admin only)
 router.post(
-    "/",
-    authorizedMiddelWare,
-    FitnessContentController.createContent
-);
+  "/",
+  authorizedMiddelWare,
+  upload.single("fitnessPhoto"),
+  FitnessContentController.createContent
+);  
 
 // Update fitness content (Admin only - owner)
 router.put(
@@ -50,13 +45,6 @@ router.delete(
     "/:contentId",
     authorizedMiddelWare,
     FitnessContentController.deleteContent
-);
-
-// Get admin statistics (Admin only)
-router.get(
-    "/stats/all",
-    authorizedMiddelWare,
-    FitnessContentController.getAdminStats
 );
 
 export default router;

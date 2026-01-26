@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 export interface IUserRepository {
     createUser(userData: Partial<IUser>): Promise<IUser>;
     getUserByEmail(email: string): Promise<IUser | null>;
+    getUserById(userId: string | mongoose.Types.ObjectId): Promise<IUser | null>;
     emailExists(email: string): Promise<boolean>;
     getAllUsers(page: number, limit: number): Promise<any>;
     deleteUser(userId: string | mongoose.Types.ObjectId): Promise<IUser | null>;
@@ -36,6 +37,11 @@ export class UserRepository implements IUserRepository {
     //Finds user by email
     async getUserByEmail(email: string): Promise<IUser | null> {
         return await UserModel.findOne({ email }).select("+password");
+    }
+
+    //Finds user by ID
+    async getUserById(userId: string | mongoose.Types.ObjectId): Promise<IUser | null> {
+        return await UserModel.findById(userId);
     }
 
     //Checks if email exists in database

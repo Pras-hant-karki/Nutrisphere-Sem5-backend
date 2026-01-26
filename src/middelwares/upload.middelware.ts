@@ -1,5 +1,5 @@
 import multer from "multer";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import fs from "fs";
 import { HttpError } from "../errors/http-error";
@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
         cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
-        const uniqueSuffix = uuid.v4();
+        const uniqueSuffix = uuidv4();
         const extension = path.extname(file.originalname);
         cb(null, uniqueSuffix + extension);
     }
@@ -26,7 +26,7 @@ const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.
     if (allowedMimeTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new HttpError(400, 'Invalid file type. Only JPEG, PNG and GIF are allowed.'));
+        cb(new Error('Invalid file type. Only JPEG, PNG and GIF are allowed.'));
     }
 };
 

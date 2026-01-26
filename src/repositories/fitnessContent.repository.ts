@@ -3,14 +3,11 @@ import mongoose from "mongoose";
 
 export interface IFitnessContentRepository {
     createContent(contentData: Partial<IFitnessContent>): Promise<IFitnessContent>;
-    getContentById(contentId: string | mongoose.Types.ObjectId): Promise<IFitnessContent | null>;
     getAllPublishedContent(page: number, limit: number): Promise<{ content: IFitnessContent[], total: number }>;
     getContentByAdmin(adminId: string | mongoose.Types.ObjectId, page: number, limit: number): Promise<IFitnessContent[]>;
     updateContent(contentId: string | mongoose.Types.ObjectId, contentData: Partial<IFitnessContent>): Promise<IFitnessContent | null>;
     deleteContent(contentId: string | mongoose.Types.ObjectId): Promise<IFitnessContent | null>;
     getContentByTag(tag: string, page: number, limit: number): Promise<IFitnessContent[]>;
-    incrementViews(contentId: string | mongoose.Types.ObjectId): Promise<IFitnessContent | null>;
-    incrementLikes(contentId: string | mongoose.Types.ObjectId): Promise<IFitnessContent | null>;
 }
 
 export class FitnessContentRepository implements IFitnessContentRepository {
@@ -70,23 +67,5 @@ export class FitnessContentRepository implements IFitnessContentRepository {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
-    }
-
-    // Increment views counter
-    async incrementViews(contentId: string | mongoose.Types.ObjectId): Promise<IFitnessContent | null> {
-        return await FitnessContentModel.findByIdAndUpdate(
-            contentId,
-            { $inc: { views: 1 } },
-            { new: true }
-        );
-    }
-
-    // Increment likes counter
-    async incrementLikes(contentId: string | mongoose.Types.ObjectId): Promise<IFitnessContent | null> {
-        return await FitnessContentModel.findByIdAndUpdate(
-            contentId,
-            { $inc: { likes: 1 } },
-            { new: true }
-        );
     }
 }

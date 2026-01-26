@@ -204,49 +204,4 @@ export class FitnessContentController {
             next(error);
         }
     }
-
-    /**
-     * Like fitness content
-     */
-    static async likeContent(req: Request, res: Response, next: NextFunction) {
-        try {
-            const { contentId } = req.params;
-
-            if (!mongoose.Types.ObjectId.isValid(contentId)) {
-                throw new HttpError(400, "Invalid content ID");
-            }
-
-            const result = await fitnessContentService.likeContent(contentId);
-
-            return res.status(200).json({
-                success: true,
-                message: "Content liked successfully",
-                content: result
-            });
-        } catch (error) {
-            next(error);
-        }
-    }
-
-    /**
-     * Get admin statistics (Admin only - own stats)
-     */
-    static async getAdminStats(req: Request, res: Response, next: NextFunction) {
-        try {
-            // Check if user is admin
-            if (req.user?.role !== 'admin') {
-                throw new HttpError(403, "Only admins can view stats");
-            }
-
-            const stats = await fitnessContentService.getAdminStats(req.user._id);
-
-            return res.status(200).json({
-                success: true,
-                message: "Admin statistics fetched successfully",
-                stats
-            });
-        } catch (error) {
-            next(error);
-        }
-    }
 }

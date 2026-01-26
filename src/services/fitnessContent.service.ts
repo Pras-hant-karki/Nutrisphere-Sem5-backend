@@ -36,11 +36,6 @@ export class FitnessContentService {
         if (!content) {
             throw new HttpError(404, "Fitness content not found");
         }
-
-        // Increment views when content is viewed
-        await this.fitnessContentRepository.incrementViews(contentId);
-
-        return content;
     }
 
     /**
@@ -80,11 +75,6 @@ export class FitnessContentService {
             throw new HttpError(404, "Fitness content not found");
         }
 
-        // Check if the admin is the owner of this content
-        if (content.adminId.toString() !== adminId.toString()) {
-            throw new HttpError(403, "You can only update your own content");
-        }
-
         const updatedContent = await this.fitnessContentRepository.updateContent(contentId, data);
         return updatedContent;
     }
@@ -99,11 +89,6 @@ export class FitnessContentService {
         const content = await this.fitnessContentRepository.getContentById(contentId);
         if (!content) {
             throw new HttpError(404, "Fitness content not found");
-        }
-
-        // Check if the admin is the owner of this content
-        if (content.adminId.toString() !== adminId.toString()) {
-            throw new HttpError(403, "You can only delete your own content");
         }
 
         const deletedContent = await this.fitnessContentRepository.deleteContent(contentId);
@@ -125,37 +110,5 @@ export class FitnessContentService {
 
         const content = await this.fitnessContentRepository.getContentByTag(tag, page, limit);
         return content;
-    }
-
-    /**
-     * Like fitness content
-     */
-    async likeContent(contentId: string | mongoose.Types.ObjectId) {
-        const content = await this.fitnessContentRepository.getContentById(contentId);
-        if (!content) {
-            throw new HttpError(404, "Fitness content not found");
-        }
-
-        const updatedContent = await this.fitnessContentRepository.incrementLikes(contentId);
-        return updatedContent;
-    }
-
-    /**
-     * Get content statistics (For admin dashboard)
-     */
-    async getAdminStats(adminId: string | mongoose.Types.ObjectId) {
-        const content = await this.fitnessContentRepository.getContentByAdmin(adminId, 1, 1000);
-        
-        const totalViews = content.reduce((sum, item) => sum + item.views, 0);
-        const totalLikes = content.reduce((sum, item) => sum + item.likes, 0);
-        const totalContent = content.length;
-
-        return {
-            totalContent,
-            totalViews,
-            totalLikes,
-            averageViews: totalContent > 0 ? Math.round(totalViews / totalContent) : 0,
-            averageLikes: totalContent > 0 ? Math.round(totalLikes / totalContent) : 0
-        };
     }
 }

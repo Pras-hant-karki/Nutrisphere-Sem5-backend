@@ -13,7 +13,7 @@ export const CreateFitnessContentDTO = z.object({
         .max(500, "Description must not exceed 500 characters"),
     
     content: z.string()
-        .min(20, "Content must be at least 20 characters"),
+        .min(10, "Content must be at least 10 characters"),
     
     image: z.string().url("Invalid image URL").optional(),
     
@@ -22,7 +22,7 @@ export const CreateFitnessContentDTO = z.object({
     tags: z.array(z.enum(['cardio', 'strength', 'yoga', 'flexibility', 'hiit', 'pilates', 'meditation', 'nutrition', 'other']))
         .optional(),
     
-    difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
+    // difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
     
     duration: z.number()
         .min(1, "Duration must be at least 1 minute")
@@ -58,7 +58,7 @@ export const UpdateFitnessContentDTO = z.object({
     tags: z.array(z.enum(['cardio', 'strength', 'yoga', 'flexibility', 'hiit', 'pilates', 'meditation', 'nutrition', 'other']))
         .optional(),
     
-    difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
+    // difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
     
     duration: z.number()
         .min(1, "Duration must be at least 1 minute")
