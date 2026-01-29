@@ -33,6 +33,22 @@ router.post(
   FitnessContentController.createContent
 );  
 
+// Upload only photo (stores file and returns path)
+router.post(
+  "/upload-photo",
+  authorizedMiddelWare,
+  upload.single("fitnessPhoto"),
+  FitnessContentController.uploadPhoto
+);
+
+// Upload only video (stores file and returns path)
+router.post(
+  "/upload-video",
+  authorizedMiddelWare,
+  upload.single("fitnessVideo"),
+  FitnessContentController.uploadVideo
+);
+
 // Update fitness content (Admin only - owner)
 router.put(
     "/:contentId",

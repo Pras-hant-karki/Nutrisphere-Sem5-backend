@@ -22,11 +22,20 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    // Allow common image and video mime types for fitness uploads
+    const allowedMimeTypes = [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'video/mp4',
+        'video/quicktime',
+        'video/x-msvideo',
+        'video/x-ms-wmv'
+    ];
     if (allowedMimeTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error('Invalid file type. Only JPEG, PNG and GIF are allowed.'));
+        cb(new Error('Invalid file type. Only JPEG, PNG, GIF and common video formats are allowed.'));
     }
 };
 

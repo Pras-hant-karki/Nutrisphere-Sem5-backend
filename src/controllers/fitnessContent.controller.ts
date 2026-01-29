@@ -52,6 +52,56 @@ export class FitnessContentController {
     }
 
     /**
+     * Upload a photo only and return stored path (Admin only)
+     */
+    static async uploadPhoto(req: Request, res: Response, next: NextFunction) {
+        try {
+            if (req.user?.role !== 'admin') {
+                throw new HttpError(403, "Only admins can upload fitness photos");
+            }
+
+            if (!req.file) {
+                throw new HttpError(400, "Image file is required");
+            }
+
+            const imagePath = `/fitness_photos/${req.file.filename}`;
+
+            return res.status(201).json({
+                success: true,
+                message: 'Photo uploaded successfully',
+                data: imagePath
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * Upload a video only and return stored path (Admin only)
+     */
+    static async uploadVideo(req: Request, res: Response, next: NextFunction) {
+        try {
+            if (req.user?.role !== 'admin') {
+                throw new HttpError(403, "Only admins can upload fitness videos");
+            }
+
+            if (!req.file) {
+                throw new HttpError(400, "Video file is required");
+            }
+
+            const videoPath = `/fitness_photos/${req.file.filename}`;
+
+            return res.status(201).json({
+                success: true,
+                message: 'Video uploaded successfully',
+                data: videoPath
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
      * Get all published fitness content (Users & Public)
      */
     static async getAllContent(req: Request, res: Response, next: NextFunction) {
