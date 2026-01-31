@@ -33,7 +33,7 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-// ✅ GLOBAL ERROR HANDLER (VERY IMPORTANT)
+// GLOBAL ERROR HANDLER 
 app.use(
   (err: any, req: Request, res: Response, next: NextFunction) => {
     res.status(err.statusCode || 500).json({

@@ -42,7 +42,7 @@ export async function authorizedMiddelWare(req: Request, res: Response, next: Ne
         const user = await userRepository.getUserById(decoded.id);
         
         if (!user) {
-            throw new HttpError(401, "Unauthorized - User Not Found");
+            throw new HttpError(401, "Unauthorized User");
         }
 
         if (!user.isActive) {

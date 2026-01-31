@@ -39,11 +39,6 @@ export class UserRepository implements IUserRepository {
         return await UserModel.findOne({ email }).select("+password");
     }
 
-    //Finds user by ID
-    async getUserById(userId: string | mongoose.Types.ObjectId): Promise<IUser | null> {
-        return await UserModel.findById(userId);
-    }
-
     //Checks if email exists in database
     async emailExists(email: string): Promise<boolean> {
         const user = await UserModel.findOne({ email });
@@ -68,5 +63,12 @@ export class UserRepository implements IUserRepository {
             userData,
             { new: true }
         );
+    }
+
+    //Finds user by ID
+    async getUserById(
+        userId: string | mongoose.Types.ObjectId
+            ): Promise<IUser | null> {
+        return await UserModel.findById(userId);
     }
 }

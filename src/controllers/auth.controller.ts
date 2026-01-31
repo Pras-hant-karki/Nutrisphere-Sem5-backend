@@ -67,7 +67,7 @@ export class UserController {
       }
 
       // Get the file path relative to uploads folder
-      const profilePictureUrl = `/uploads/${req.file.filename}`;
+      const profilePictureUrl = `/fitness_photos/${req.file.filename}`;
 
       // Update profile picture in database
       const updatedUser = await userService.updateProfilePicture(
