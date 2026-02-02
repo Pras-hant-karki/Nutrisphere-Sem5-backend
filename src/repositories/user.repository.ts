@@ -11,6 +11,7 @@ export interface IUserRepository {
     updateProfilePicture(userId: string | mongoose.Types.ObjectId, profilePictureUrl: string): Promise<IUser | null>;
     getProfilePicture(userId: string | mongoose.Types.ObjectId): Promise<string | null>;
     updateUserByEmail(email: string, userData: Partial<IUser>): Promise<IUser | null>;
+    updateUserById(userId: string | mongoose.Types.ObjectId, userData: Partial<IUser>): Promise<IUser | null>;
 }
 
 export class UserRepository implements IUserRepository {
@@ -70,5 +71,14 @@ export class UserRepository implements IUserRepository {
         userId: string | mongoose.Types.ObjectId
             ): Promise<IUser | null> {
         return await UserModel.findById(userId);
+    }
+
+    //Updates a user by ID (for admin operations)
+    async updateUserById(userId: string | mongoose.Types.ObjectId, userData: Partial<IUser>): Promise<IUser | null> {
+        return await UserModel.findByIdAndUpdate(
+            userId,
+            userData,
+            { new: true, runValidators: true }
+        );
     }
 }

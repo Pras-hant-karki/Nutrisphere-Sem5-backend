@@ -1,9 +1,11 @@
 import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
+import path from "path";
 import { connectDatabase } from "./database/mongodb";
 import { PORT } from "./config";
 import authRoutes from "./routes/auth.route";
 import fitnessRoutes from "./routes/fitness.route";
+import adminRoutes from "./routes/admin.route";
 
 const app: Application = express();
 
@@ -21,9 +23,13 @@ app.use(express.urlencoded({ extended: true }));
 // Static files for public folder (images, videos, etc)
 app.use("/", express.static("public"));
 
+// Static files for uploads folder (user images, etc)
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/fitness", fitnessRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Root
 app.get("/", (req: Request, res: Response) => {

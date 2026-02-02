@@ -98,4 +98,29 @@ export class UserService {
 
     return user.profilePicture;
   }
+
+  /**
+   * Update user profile by ID (fullName, phone, image)
+   * Used by authenticated users to update their own profile
+   */
+  async updateUserProfile(
+    userId: string,
+    fullName?: string,
+    phone?: string,
+    image?: string
+  ) {
+    const user = await userRepository.getUserById(userId);
+    if (!user) {
+      throw new HttpError(404, "User not found");
+    }
+
+    // Build update object with only provided fields
+    const updateData: any = {};
+    if (fullName !== undefined) updateData.fullName = fullName;
+    if (phone !== undefined) updateData.phone = phone;
+    if (image !== undefined) updateData.image = image;
+
+    const updatedUser = await userRepository.updateUserById(userId, updateData);
+    return updatedUser;
+  }
 }

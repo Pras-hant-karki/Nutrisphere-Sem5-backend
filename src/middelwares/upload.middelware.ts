@@ -4,14 +4,27 @@ import path from "path";
 import fs from "fs";
 import { HttpError } from "../errors/http-error";
 
-// Ensure the uploads directory exists
-const uploadDir = path.join(__dirname, '../../public/fitness_photos');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Determine upload directory based on field name
+const getUploadDir = (fieldName: string) => {
+    if (fieldName === 'profilePicture') {
+        const profileDir = path.join(__dirname, '../../public/profile_pictures');
+        if (!fs.existsSync(profileDir)) {
+            fs.mkdirSync(profileDir, { recursive: true });
+        }
+        return profileDir;
+    }
+    
+    // Default to fitness_photos for all other uploads
+    const fitnessDir = path.join(__dirname, '../../public/fitness_photos');
+    if (!fs.existsSync(fitnessDir)) {
+        fs.mkdirSync(fitnessDir, { recursive: true });
+    }
+    return fitnessDir;
+};
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
+        const uploadDir = getUploadDir(file.fieldname);
         cb(null, uploadDir);
     },
     filename: function (req, file, cb) {

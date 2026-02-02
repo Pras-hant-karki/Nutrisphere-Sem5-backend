@@ -36,6 +36,16 @@ const UserSchema: Schema = new Schema<UserType>(
             default: null,
             trim: true
         },
+        image: {
+            type: String,
+            default: null,
+            trim: true
+        },
+        phone: {
+            type: String,
+            default: null,
+            trim: true
+        },
         isActive: {
             type: Boolean,
             default: true
@@ -54,6 +64,9 @@ export interface IUser extends UserType, Document {
     email: string;
     password: string;
     role: 'user' | 'admin';
+    profilePicture?: string | null;
+    image?: string | null;
+    phone?: string | null;
     createdAt: Date;
     updatedAt: Date;
     isActive: boolean;

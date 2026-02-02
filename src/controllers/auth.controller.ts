@@ -67,7 +67,7 @@ export class UserController {
       }
 
       // Get the file path relative to uploads folder
-      const profilePictureUrl = `/fitness_photos/${req.file.filename}`;
+      const profilePictureUrl = `/profile_pictures/${req.file.filename}`;
 
       // Update profile picture in database
       const updatedUser = await userService.updateProfilePicture(
@@ -105,6 +105,48 @@ export class UserController {
       return res.status(200).json({
         success: true,
         profilePictureUrl: profilePictureUrl,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * PUT /api/auth/:id
+   * Update user profile (image, fullName, phone, etc)
+   * Only logged-in user can update their own profile unless admin
+   */
+  static async updateProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.params;
+      const currentUser = req.user;
+      const { fullName, phone } = req.body;
+      const image = req.file ? `/uploads/${req.file.filename}` : undefined;
+
+      if (!currentUser) {
+        throw new HttpError(401, "Unauthorized - User not authenticated");
+      }
+
+      // Check authorization: user can only update their own profile (unless admin)
+      if (currentUser._id.toString() !== id && currentUser.role !== "admin") {
+        throw new HttpError(403, "Forbidden - Can only update your own profile");
+      }
+
+      const result = await userService.updateUserProfile(
+        id,
+        fullName,
+        phone,
+        image
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Profile updated successfully",
+        user: result,
       });
     } catch (error) {
       next(error);
