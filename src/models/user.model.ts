@@ -53,10 +53,36 @@ const UserSchema: Schema = new Schema<UserType>(
         lastLogin: {
             type: Date,
             default: null
+        },
+        bio: {
+            type: [
+                {
+                    type: {
+                        type: String,
+                        enum: ['text', 'image'],
+                        required: true
+                    },
+                    content: {
+                        type: String,
+                        required: true
+                    },
+                    createdAt: {
+                        type: Date,
+                        default: Date.now
+                    }
+                }
+            ],
+            default: []
         }
     },
     { timestamps: true }
 );
+
+export interface IBioEntry {
+    type: 'text' | 'image';
+    content: string;
+    createdAt: Date;
+}
 
 export interface IUser extends UserType, Document {
     _id: mongoose.Types.ObjectId;
@@ -71,6 +97,7 @@ export interface IUser extends UserType, Document {
     updatedAt: Date;
     isActive: boolean;
     lastLogin: Date | null;
+    bio: IBioEntry[];
 }
 
 export const UserModel = mongoose.model<IUser>('User', UserSchema);

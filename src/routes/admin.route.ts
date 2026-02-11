@@ -53,4 +53,38 @@ router.delete(
     AdminController.deleteUser
 );
 
+// ============ Bio Routes ============
+
+// PUT - Save bio entries
+router.put(
+    "/bio",
+    authorizedMiddelWare,
+    adminMiddleware,
+    AdminController.saveBio
+);
+
+// GET - Get bio entries (for admin)
+router.get(
+    "/bio",
+    authorizedMiddelWare,
+    adminMiddleware,
+    AdminController.getBio
+);
+
+// POST - Upload bio image
+router.post(
+    "/bio/upload-image",
+    authorizedMiddelWare,
+    adminMiddleware,
+    uploadSingle.single("image"),
+    AdminController.uploadBioImage
+);
+
+// GET - Get trainer info (public for users - only requires auth)
+router.get(
+    "/trainer-info",
+    authorizedMiddelWare,
+    AdminController.getTrainerInfo
+);
+
 export default router;

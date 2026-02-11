@@ -139,4 +139,45 @@ export class AdminService {
             message: `User deleted successfully`,
         };
     }
+
+    /**
+     * Save bio entries for admin (trainer)
+     */
+    async saveBio(userId: string, bio: { type: string; content: string }[]): Promise<{ message: string }> {
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            throw new HttpError(400, "Invalid user ID format");
+        }
+
+        const user = await this.userRepository.getUserById(userId);
+        if (!user) {
+            throw new HttpError(404, "User not found");
+        }
+
+        await this.userRepository.updateBio(userId, bio);
+
+        return { message: "Bio saved successfully" };
+    }
+
+    /**
+     * Get bio entries for admin (trainer)
+     */
+    async getBio(userId: string): Promise<any[]> {
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            throw new HttpError(400, "Invalid user ID format");
+        }
+
+        const bio = await this.userRepository.getBio(userId);
+        return bio || [];
+    }
+
+    /**
+     * Get trainer (first admin) info for users
+     */
+    async getTrainerInfo(): Promise<any> {
+        const admin = await this.userRepository.getFirstAdmin();
+        if (!admin) {
+            throw new HttpError(404, "No trainer found");
+        }
+        return admin;
+    }
 }

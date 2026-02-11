@@ -81,4 +81,24 @@ export class UserRepository implements IUserRepository {
             { new: true, runValidators: true }
         );
     }
+
+    // Update bio for a user
+    async updateBio(userId: string | mongoose.Types.ObjectId, bio: any[]): Promise<IUser | null> {
+        return await UserModel.findByIdAndUpdate(
+            userId,
+            { bio },
+            { new: true }
+        );
+    }
+
+    // Get bio for a user
+    async getBio(userId: string | mongoose.Types.ObjectId): Promise<any[] | null> {
+        const user = await UserModel.findById(userId).select('bio');
+        return user?.bio || null;
+    }
+
+    // Get first admin user (trainer)
+    async getFirstAdmin(): Promise<IUser | null> {
+        return await UserModel.findOne({ role: 'admin' }).select('fullName email phone profilePicture bio');
+    }
 }

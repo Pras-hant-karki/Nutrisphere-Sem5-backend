@@ -124,4 +124,85 @@ export class AdminController {
             next(error);
         }
     }
+
+    /**
+     * PUT /api/admin/bio
+     * Save bio entries for the logged-in admin
+     */
+    static async saveBio(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = (req.user as any)._id.toString();
+            const { bio } = req.body;
+
+            if (!bio || !Array.isArray(bio)) {
+                throw new HttpError(400, "Bio must be an array of entries");
+            }
+
+            const result = await adminService.saveBio(userId, bio);
+
+            return res.status(200).json({
+                success: true,
+                message: result.message,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * GET /api/admin/bio
+     * Get bio entries for the logged-in admin
+     */
+    static async getBio(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = (req.user as any)._id.toString();
+            const bio = await adminService.getBio(userId);
+
+            return res.status(200).json({
+                success: true,
+                data: bio,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * POST /api/admin/bio/upload-image
+     * Upload an image for a bio entry
+     */
+    static async uploadBioImage(req: Request, res: Response, next: NextFunction) {
+        try {
+            if (!req.file) {
+                throw new HttpError(400, "No image file provided");
+            }
+
+            const imageUrl = `/uploads/${req.file.filename}`;
+
+            return res.status(200).json({
+                success: true,
+                message: "Image uploaded successfully",
+                data: { imageUrl },
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * GET /api/admin/trainer-info
+     * Get trainer info (public for users)
+     */
+    static async getTrainerInfo(req: Request, res: Response, next: NextFunction) {
+        try {
+            const trainer = await adminService.getTrainerInfo();
+
+            return res.status(200).json({
+                success: true,
+                data: trainer,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }

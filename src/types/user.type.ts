@@ -1,5 +1,11 @@
 import z, { string } from "zod";
 
+export const BioEntrySchema = z.object({
+    type: z.enum(["text", "image"]),
+    content: z.string(),
+    createdAt: z.date().optional(),
+});
+
 export const UserSchema = z.object({
     fullName: z.string().min(2),
     email: z.string().email(),
@@ -10,6 +16,7 @@ export const UserSchema = z.object({
     phone: z.string().nullable().optional(),
     isActive: z.boolean().optional(),
     lastLogin: z.date().nullable().optional(),
+    bio: z.array(BioEntrySchema).optional(),
 });
 
 export type UserType = z.infer<typeof UserSchema>;
