@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { FitnessContentController } from "../controllers/fitnessContent.controller";
-import { authorizedMiddelWare } from "../middelwares/authorized.middelware";
+import { authorizedMiddelWare, optionalAuthorizedMiddelWare } from "../middelwares/authorized.middelware";
 import { upload } from "../middelwares/upload.middelware";
 
 const router = Router();
@@ -10,7 +10,7 @@ const router = Router();
  */
 
 // Get all published fitness content
-router.get("/", FitnessContentController.getAllContent);
+router.get("/", optionalAuthorizedMiddelWare, FitnessContentController.getAllContent);
 
 // Get fitness content by specific tag
 router.get("/tag/:tag", FitnessContentController.getContentByTag);

@@ -25,6 +25,11 @@ export const CreateFitnessContentDTO = z.object({
     tags: z.array(z.enum(['cardio', 'strength', 'yoga', 'flexibility', 'hiit', 'pilates', 'meditation', 'nutrition', 'other']))
         .optional(),
     
+    // Alternative fields from frontend
+    category: z.string().optional(),
+    media: z.string().optional(),
+    mediaType: z.enum(['image', 'video']).optional(),
+    
     // difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
     
     duration: z.number()
@@ -62,6 +67,11 @@ export const UpdateFitnessContentDTO = z.object({
     
     tags: z.array(z.enum(['cardio', 'strength', 'yoga', 'flexibility', 'hiit', 'pilates', 'meditation', 'nutrition', 'other']))
         .optional(),
+    
+    // Alternative fields from frontend
+    category: z.string().optional(),
+    media: z.string().optional(),
+    mediaType: z.enum(['image', 'video']).optional(),
     
     // difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
     

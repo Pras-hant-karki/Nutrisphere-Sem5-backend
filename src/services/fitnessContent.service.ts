@@ -51,6 +51,18 @@ export class FitnessContentService {
     }
 
     /**
+     * Get all fitness content (For admin)
+     */
+    async getAllContent(page: number = 1, limit: number = 10) {
+        if (page < 1 || limit < 1) {
+            throw new HttpError(400, "Page and limit must be greater than 0");
+        }
+
+        const result = await this.fitnessContentRepository.getAllContent(page, limit);
+        return result;
+    }
+
+    /**
      * Get fitness content posted by specific admin
      */
     async getContentByAdmin(adminId: string | mongoose.Types.ObjectId, page: number = 1, limit: number = 10) {

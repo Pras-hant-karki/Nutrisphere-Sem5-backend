@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 export interface IFitnessContentRepository {
     createContent(contentData: Partial<IFitnessContent>): Promise<IFitnessContent>;
+    getAllContent(page: number, limit: number): Promise<{ content: IFitnessContent[], total: number }>;
     getAllPublishedContent(page: number, limit: number): Promise<{ content: IFitnessContent[], total: number }>;
     getContentByAdmin(adminId: string | mongoose.Types.ObjectId, page: number, limit: number): Promise<IFitnessContent[]>;
     updateContent(contentId: string | mongoose.Types.ObjectId, contentData: Partial<IFitnessContent>): Promise<IFitnessContent | null>;
@@ -31,6 +32,19 @@ export class FitnessContentRepository implements IFitnessContentRepository {
             .limit(limit);
         
         const total = await FitnessContentModel.countDocuments({ isPublished: true });
+        
+        return { content, total };
+    }
+
+    // Get all content with pagination (for admin)
+    async getAllContent(page: number, limit: number): Promise<{ content: IFitnessContent[], total: number }> {
+        const skip = (page - 1) * limit;
+        const content = await FitnessContentModel.find({})
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+        
+        const total = await FitnessContentModel.countDocuments({});
         
         return { content, total };
     }

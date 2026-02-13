@@ -16,6 +16,48 @@ declare global {
 }
 
 /**
+ * Middleware to verify JWT token and attach user to request (optional)
+ * If no token provided, req.user remains undefined
+ */
+export async function optionalAuthorizedMiddelWare(req: Request, res: Response, next: NextFunction) {
+    try {
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            // No token provided, continue without user
+            return next();
+        }
+        
+        const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+        
+        if (!token) {
+            return next();
+        }
+        
+        // Verify token
+        const decoded = jwt.verify(token, JWT_SECRET) as Record<string, any>;
+        
+        if (!decoded || !decoded.id) {
+            return next();
+        }
+        
+        const user = await userRepository.getUserById(decoded.id);
+        
+        if (!user || !user.isActive) {
+            return next();
+        }
+        
+        // Attach user to request
+        req.user = user;
+        
+        next();
+    } catch (error) {
+        // For optional auth, don't throw error on invalid token
+        next();
+    }
+}
+
+/**
  * Middleware to verify JWT token and attach user to request
  * Must be used before accessing req.user in routes
  */

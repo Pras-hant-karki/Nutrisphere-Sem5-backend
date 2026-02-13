@@ -32,11 +32,24 @@ export class FitnessContentController {
             // Validate request body
             const data = CreateFitnessContentDTO.parse(bodyData);
 
+            // Transform frontend fields to backend fields
+            const transformedData = { ...data };
+            if (data.category && !data.tags) {
+                transformedData.tags = [data.category];
+            }
+            if (data.media && data.mediaType) {
+                if (data.mediaType === 'image') {
+                    transformedData.image = data.media;
+                } else if (data.mediaType === 'video') {
+                    transformedData.video = data.media;
+                }
+            }
+
             // Create content
             const result = await fitnessContentService.createContent(
                 req.user._id,
                 req.user.fullName,
-                data
+                transformedData
             );
 
             return res.status(201).json({
@@ -107,7 +120,11 @@ export class FitnessContentController {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
 
-            const result = await fitnessContentService.getAllPublishedContent(page, limit);
+            // Check if user is admin - if so, get all content, otherwise only published
+            const isAdmin = req.user?.role === 'admin';
+            const result = isAdmin 
+                ? await fitnessContentService.getAllContent(page, limit)
+                : await fitnessContentService.getAllPublishedContent(page, limit);
 
             return res.status(200).json({
                 success: true,
@@ -221,11 +238,24 @@ export class FitnessContentController {
             // Validate request body
             const data = UpdateFitnessContentDTO.parse(req.body);
 
+            // Transform frontend fields to backend fields
+            const transformedData = { ...data };
+            if (data.category && !data.tags) {
+                transformedData.tags = [data.category];
+            }
+            if (data.media && data.mediaType) {
+                if (data.mediaType === 'image') {
+                    transformedData.image = data.media;
+                } else if (data.mediaType === 'video') {
+                    transformedData.video = data.media;
+                }
+            }
+
             // Update content
             const result = await fitnessContentService.updateContent(
                 contentId,
                 req.user._id,
-                data
+                transformedData
             );
 
             return res.status(200).json({
