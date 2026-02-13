@@ -17,7 +17,8 @@ export const CreateFitnessContentDTO = z.object({
         .optional(),
     
     image: z.string()
-        .min(1, "Image path is required"),
+        .min(1, "Image path is required")
+        .optional(),
     
     video: z.string().url("Invalid video URL").optional(),
     

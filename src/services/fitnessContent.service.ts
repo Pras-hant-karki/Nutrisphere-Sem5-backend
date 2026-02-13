@@ -20,7 +20,7 @@ export class FitnessContentService {
     ) {
         const contentData = {
             ...data,
-            adminId,
+            adminId: typeof adminId === 'string' ? new mongoose.Types.ObjectId(adminId) : adminId,
             adminName
         };
 

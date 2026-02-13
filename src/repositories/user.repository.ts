@@ -6,7 +6,7 @@ export interface IUserRepository {
     getUserByEmail(email: string): Promise<IUser | null>;
     getUserById(userId: string | mongoose.Types.ObjectId): Promise<IUser | null>;
     emailExists(email: string): Promise<boolean>;
-    getAllUsers(page: number, limit: number): Promise<any>;
+    getAllUsers(): Promise<IUser[]>;
     deleteUser(userId: string | mongoose.Types.ObjectId): Promise<IUser | null>;
     updateProfilePicture(userId: string | mongoose.Types.ObjectId, profilePictureUrl: string): Promise<IUser | null>;
     getProfilePicture(userId: string | mongoose.Types.ObjectId): Promise<string | null>;
@@ -52,9 +52,9 @@ export class UserRepository implements IUserRepository {
         return users;
     }
 
-    //Deletes a user by email
-    async deleteUser(email: string): Promise<IUser | null> {
-        return await UserModel.findOneAndDelete({ email });
+    //Deletes a user by ID
+    async deleteUser(userId: string | mongoose.Types.ObjectId): Promise<IUser | null> {
+        return await UserModel.findByIdAndDelete(userId);
     }
 
     //Updates a user by email

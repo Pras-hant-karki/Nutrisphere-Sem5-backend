@@ -19,14 +19,13 @@ export class FitnessContentRepository implements IFitnessContentRepository {
 
     // Get single content by ID
     async getContentById(contentId: string | mongoose.Types.ObjectId): Promise<IFitnessContent | null> {
-        return await FitnessContentModel.findById(contentId).populate('adminId', 'fullName email profilePicture');
+        return await FitnessContentModel.findById(contentId);
     }
 
     // Get all published content with pagination
     async getAllPublishedContent(page: number, limit: number): Promise<{ content: IFitnessContent[], total: number }> {
         const skip = (page - 1) * limit;
         const content = await FitnessContentModel.find({ isPublished: true })
-            .populate('adminId', 'fullName email profilePicture')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -63,7 +62,7 @@ export class FitnessContentRepository implements IFitnessContentRepository {
     async getContentByTag(tag: string, page: number, limit: number): Promise<IFitnessContent[]> {
         const skip = (page - 1) * limit;
         return await FitnessContentModel.find({ tags: tag, isPublished: true })
-            .populate('adminId', 'fullName email profilePicture')
+            // .populate('adminId', 'fullName email profilePicture')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
