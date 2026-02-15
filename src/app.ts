@@ -6,6 +6,7 @@ import { PORT } from "./config";
 import authRoutes from "./routes/auth.route";
 import fitnessRoutes from "./routes/fitness.route";
 import adminRoutes from "./routes/admin.route";
+import planRequestRoutes from "./routes/planRequest.route";
 
 const app: Application = express();
 
@@ -30,6 +31,7 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/api/auth", authRoutes);
 app.use("/api/fitness", fitnessRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/plan-requests", planRequestRoutes);
 
 // Root
 app.get("/", (req: Request, res: Response) => {
