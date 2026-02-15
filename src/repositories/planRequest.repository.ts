@@ -77,6 +77,11 @@ export class PlanRequestRepository {
             {
                 status: "rejected",
                 rejectionReason: reason,
+                adminResponse: {
+                    type: "link", // dummy
+                    url: "", // dummy
+                    respondedAt: new Date(),
+                },
             },
             { new: true }
         );
