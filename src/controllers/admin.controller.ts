@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { AdminService } from "../services/admin.service";
+import { NotificationService } from "../services/notification.service";
 import { HttpError } from "../errors/http-error";
 
 const adminService = new AdminService();
+const notificationService = new NotificationService();
 
 export class AdminController {
     /**
@@ -139,6 +141,18 @@ export class AdminController {
             }
 
             const result = await adminService.saveBio(userId, bio);
+
+            // Notify all users about trainer bio update
+            try {
+                await notificationService.notifyAllUsers(
+                    "trainer_update",
+                    "Trainer Profile Updated",
+                    "Trainer details updated, get to know more about your Trainer!",
+                    userId
+                );
+            } catch (notifError) {
+                console.error("Failed to send notification:", notifError);
+            }
 
             return res.status(200).json({
                 success: true,

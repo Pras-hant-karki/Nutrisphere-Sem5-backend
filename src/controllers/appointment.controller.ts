@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { AppointmentService } from "../services/appointment.service";
+import { NotificationService } from "../services/notification.service";
 import { HttpError } from "../errors/http-error";
 
 const appointmentService = new AppointmentService();
+const notificationService = new NotificationService();
 
 export class AppointmentController {
     /**
@@ -46,6 +48,19 @@ export class AppointmentController {
                 country,
                 specialRequest,
             });
+
+            // Notify admins about new appointment booking
+            try {
+                await notificationService.notifyAdmins(
+                    "appointment_request",
+                    "New Appointment Request",
+                    `${(req.user as any).fullName || "A user"} has sent appointment booking request`,
+                    (req.user as any)._id.toString(),
+                    result.appointment._id?.toString()
+                );
+            } catch (notifError) {
+                console.error("Failed to send notification:", notifError);
+            }
 
             return res.status(201).json({
                 success: true,

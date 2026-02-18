@@ -5,8 +5,8 @@ import { PORT } from './config';
 async function startServer() {
   await connectDatabase();
   app.listen(
-    PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    PORT, '0.0.0.0', () => {
+    console.log(`Server running at http://0.0.0.0:${PORT}`);
   });
 }
 

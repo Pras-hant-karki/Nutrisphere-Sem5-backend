@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateFitnessContentDTO, UpdateFitnessContentDTO } from "../dtos/fitnessContent.dto";
 import { FitnessContentService } from "../services/fitnessContent.service";
+import { NotificationService } from "../services/notification.service";
 import { HttpError } from "../errors/http-error";
 import mongoose from "mongoose";
 
 const fitnessContentService = new FitnessContentService();
+const notificationService = new NotificationService();
 
 export class FitnessContentController {
     /**
@@ -35,7 +37,7 @@ export class FitnessContentController {
             // Transform frontend fields to backend fields
             const transformedData = { ...data };
             if (data.category && !data.tags) {
-                transformedData.tags = [data.category];
+                transformedData.tags = [data.category as any];
             }
             if (data.media && data.mediaType) {
                 if (data.mediaType === 'image') {
@@ -51,6 +53,19 @@ export class FitnessContentController {
                 req.user.fullName,
                 transformedData
             );
+
+            // Send notification to all users about new post
+            try {
+                await notificationService.notifyAllUsers(
+                    "new_post",
+                    "New Fitness Post",
+                    "New post created by Trainer, time to get new knowledge!",
+                    req.user._id.toString(),
+                    result._id?.toString()
+                );
+            } catch (notifError) {
+                console.error("Failed to send notification:", notifError);
+            }
 
             return res.status(201).json({
                 success: true,
@@ -241,7 +256,7 @@ export class FitnessContentController {
             // Transform frontend fields to backend fields
             const transformedData = { ...data };
             if (data.category && !data.tags) {
-                transformedData.tags = [data.category];
+                transformedData.tags = [data.category as any];
             }
             if (data.media && data.mediaType) {
                 if (data.mediaType === 'image') {

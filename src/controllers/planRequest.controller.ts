@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { PlanRequestService } from "../services/planRequest.service";
+import { NotificationService } from "../services/notification.service";
 import { HttpError } from "../errors/http-error";
 
 const planRequestService = new PlanRequestService();
+const notificationService = new NotificationService();
 
 export class PlanRequestController {
     /**
@@ -44,6 +46,20 @@ export class PlanRequestController {
                 goal,
                 specialRequest,
             });
+
+            // Notify admins about new plan request
+            try {
+                const planType = requestType === "diet" ? "diet plan" : "workout plan";
+                await notificationService.notifyAdmins(
+                    "plan_request",
+                    "New Plan Request",
+                    `${(req.user as any).fullName || "A user"} has requested a ${planType}`,
+                    (req.user as any)._id.toString(),
+                    result.request._id?.toString()
+                );
+            } catch (notifError) {
+                console.error("Failed to send notification:", notifError);
+            }
 
             return res.status(201).json({
                 success: true,
