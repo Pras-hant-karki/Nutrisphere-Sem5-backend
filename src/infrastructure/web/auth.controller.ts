@@ -1,9 +1,17 @@
 import { Request, Response, NextFunction } from "express";
-import { RegisterUserDTO, LoginUserDTO } from "../dtos/user.dto";
-import { UserService } from "../services/user.service";
-import { HttpError } from "../errors/http-error";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { RegisterUserDTO, LoginUserDTO } from "../../dtos/user.dto";
+import { RegisterUserUseCase } from "../../domain/usecases/register-user.usecase";
+import { LoginUserUseCase } from "../../domain/usecases/login-user.usecase";
+import { MongoUserRepository } from "../../infrastructure/database/mongo-user.repository";
+import { JWT_SECRET } from "../../config";
+import { HttpError } from "../../errors/http-error";
 
-const userService = new UserService();
+// Dependency injection - in a real app, use a DI container
+const userRepository = new MongoUserRepository();
+const registerUserUseCase = new RegisterUserUseCase(userRepository);
+const loginUserUseCase = new LoginUserUseCase(userRepository);
 
 export class UserController {
   /**
@@ -14,13 +22,21 @@ export class UserController {
       // Validate request body
       const data = RegisterUserDTO.parse(req.body);
 
-      // Create user
-      const result = await userService.registerUser(data);
+      // Hash password (infrastructure concern)
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+      const request = {
+        fullName: data.fullName,
+        email: data.email,
+        password: hashedPassword,
+      };
+
+      // Execute use case
+      const result = await registerUserUseCase.execute(request);
 
       return res.status(201).json({
         success: true,
         message: "Account created successfully",
-        ...result,
+        user: result.user,
       });
     } catch (error) {
       next(error);
@@ -34,13 +50,31 @@ export class UserController {
     try {
       // Validate request body
       const data = LoginUserDTO.parse(req.body);
- 
-      // Authenticate user
-      const result = await userService.LoginUser(data);
+
+      // Execute use case to get user
+      const result = await loginUserUseCase.execute({
+        email: data.email,
+        password: '', // Password check done below
+      });
+
+      // Verify password (infrastructure concern)
+      const isValidPassword = await bcrypt.compare(data.password, result.user.password);
+      if (!isValidPassword) {
+        throw new HttpError(401, "Invalid credentials");
+      }
+
+      // Generate JWT token (infrastructure concern)
+      const payload = {
+        id: result.user.id,
+        email: result.user.email,
+        role: result.user.role,
+      };
+      const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "30d" });
 
       return res.status(200).json({
         success: true,
-        ...result,
+        token,
+        user: result.user,
       });
     } catch (error) {
       next(error);
@@ -70,10 +104,11 @@ export class UserController {
       const profilePictureUrl = `/profile_pictures/${req.file.filename}`;
 
       // Update profile picture in database
-      const updatedUser = await userService.updateProfilePicture(
-        email,
-        profilePictureUrl
-      );
+      const user = await userRepository.getUserByEmail(email);
+      if (!user) {
+        throw new HttpError(404, "User not found");
+      }
+      const updatedUser = await userRepository.updateUser(user.id, { profilePicture: profilePictureUrl });
 
       return res.status(200).json({
         success: true,
@@ -100,11 +135,14 @@ export class UserController {
         throw new HttpError(401, "Unauthorized - User email not found");
       }
 
-      const profilePictureUrl = await userService.getProfilePicture(email);
+      const user = await userRepository.getUserByEmail(email);
+      if (!user) {
+        throw new HttpError(404, "User not found");
+      }
 
       return res.status(200).json({
         success: true,
-        profilePictureUrl: profilePictureUrl,
+        profilePictureUrl: user.profilePicture,
       });
     } catch (error) {
       next(error);
@@ -136,17 +174,17 @@ export class UserController {
         throw new HttpError(403, "Forbidden - Can only update your own profile");
       }
 
-      const result = await userService.updateUserProfile(
-        id,
-        fullName,
-        phone,
-        image
-      );
+      const updateData: Partial<any> = {};
+      if (fullName) updateData.fullName = fullName;
+      if (phone) updateData.phone = phone;
+      if (image) updateData.image = image;
+
+      const updatedUser = await userRepository.updateUser(id, updateData);
 
       return res.status(200).json({
         success: true,
         message: "Profile updated successfully",
-        user: result,
+        user: updatedUser,
       });
     } catch (error) {
       next(error);

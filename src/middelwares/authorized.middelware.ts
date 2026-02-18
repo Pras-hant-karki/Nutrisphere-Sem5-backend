@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken"
 import { JWT_SECRET } from "../config";
-import { IUser } from "../models/user.model";
-import { UserRepository } from "../repositories/user.repository";
+import { IUser } from "../infrastructure/database/user.model";
+import { MongoUserRepository } from "../infrastructure/database/mongo-user.repository";
 import { HttpError } from "../errors/http-error";
 
-let userRepository = new UserRepository();
+let userRepository = new MongoUserRepository();
 
 declare global {
     namespace Express {

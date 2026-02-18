@@ -1,4 +1,4 @@
-import { UserModel, IUser } from "../models/user.model";
+import { UserModel, IUser } from "../infrastructure/database/user.model";
 import mongoose from "mongoose";
 
 export interface IUserRepository {
