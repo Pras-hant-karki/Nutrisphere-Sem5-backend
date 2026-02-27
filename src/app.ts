@@ -9,6 +9,7 @@ import adminRoutes from "./routes/admin.route";
 import planRequestRoutes from "./routes/planRequest.route";
 import appointmentRoutes from "./routes/appointment.route";
 import notificationRoutes from "./routes/notification.route";
+import sessionRoutes from "./routes/session.route";
 
 const app: Application = express();
 
@@ -36,6 +37,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/plan-requests", planRequestRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/sessions", sessionRoutes);
 
 // Root
 app.get("/", (req: Request, res: Response) => {

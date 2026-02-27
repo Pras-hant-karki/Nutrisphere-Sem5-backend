@@ -1,5 +1,6 @@
 import { User } from '../entities/user.entity';
 import { IUserRepository } from '../repositories/user.repository.interface';
+import { HttpError } from '../../errors/http-error';
 
 export interface LoginUserRequest {
   email: string;
@@ -18,12 +19,12 @@ export class LoginUserUseCase {
     // Business rule: Find user by email
     const user = await this.userRepository.getUserByEmail(request.email);
     if (!user) {
-      throw new Error('User not found');
+      throw new HttpError(404, 'User not found');
     }
 
     // Business rule: Check if user is active
     if (!user.isActive) {
-      throw new Error('Account is inactive');
+      throw new HttpError(403, 'Account is inactive');
     }
 
     // Note: Password verification should be done in infrastructure layer
