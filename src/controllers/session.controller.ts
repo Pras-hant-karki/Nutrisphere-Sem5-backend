@@ -5,6 +5,11 @@ import { SessionService } from "../services/session.service";
 const sessionService = new SessionService();
 const notificationService = new NotificationService();
 
+const getRequestUserId = (user: any): string => {
+  const rawId = user?.id ?? user?._id;
+  return typeof rawId?.toString === "function" ? rawId.toString() : "";
+};
+
 export class SessionController {
   static async getActiveSessions(req: Request, res: Response, next: NextFunction) {
     try {
@@ -37,14 +42,15 @@ export class SessionController {
   static async createSession(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as any;
-      const created = await sessionService.createSession(user._id.toString(), req.body);
+      const userId = getRequestUserId(user);
+      const created = await sessionService.createSession(userId, req.body);
 
       try {
         await notificationService.notifyAllUsers(
           "new_session",
           "New Session Available",
           `${user.fullName || "Admin"} has added a new workout session`,
-          user._id.toString(),
+          userId,
           created._id.toString()
         );
       } catch (notifyError) {
@@ -64,9 +70,10 @@ export class SessionController {
   static async updateSession(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as any;
+      const userId = getRequestUserId(user);
       const updated = await sessionService.updateSession(
         req.params.id,
-        user._id.toString(),
+        userId,
         req.body
       );
 
@@ -83,9 +90,10 @@ export class SessionController {
   static async toggleSession(req: Request, res: Response, next: NextFunction) {
     try {
       const user = req.user as any;
+      const userId = getRequestUserId(user);
       const updated = await sessionService.toggleSession(
         req.params.id,
-        user._id.toString()
+        userId
       );
 
       return res.status(200).json({

@@ -5,13 +5,22 @@ import { HttpError } from "../errors/http-error";
 const notificationService = new NotificationService();
 
 export class NotificationController {
+    private static getUserId(req: Request): string {
+        const authUser = req.user as any;
+        const userId = (authUser?._id || authUser?.id)?.toString();
+        if (!userId) {
+            throw new HttpError(401, "Unauthorized user context");
+        }
+        return userId;
+    }
+
     /**
      * GET /api/notifications
      * Get all notifications for the authenticated user
      */
     static async getNotifications(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = (req.user as any)._id.toString();
+            const userId = NotificationController.getUserId(req);
             const notifications = await notificationService.getNotifications(userId);
 
             return res.status(200).json({
@@ -30,7 +39,7 @@ export class NotificationController {
      */
     static async getUnreadCount(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = (req.user as any)._id.toString();
+            const userId = NotificationController.getUserId(req);
             const count = await notificationService.getUnreadCount(userId);
 
             return res.status(200).json({
@@ -48,7 +57,7 @@ export class NotificationController {
      */
     static async markAsRead(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = (req.user as any)._id.toString();
+            const userId = NotificationController.getUserId(req);
             const { id } = req.params;
 
             const notification = await notificationService.markAsRead(id, userId);
@@ -69,7 +78,7 @@ export class NotificationController {
      */
     static async markAllAsRead(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = (req.user as any)._id.toString();
+            const userId = NotificationController.getUserId(req);
             await notificationService.markAllAsRead(userId);
 
             return res.status(200).json({
@@ -87,7 +96,7 @@ export class NotificationController {
      */
     static async deleteNotification(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = (req.user as any)._id.toString();
+            const userId = NotificationController.getUserId(req);
             const { id } = req.params;
 
             await notificationService.deleteNotification(id, userId);

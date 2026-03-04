@@ -133,8 +133,13 @@ export class AdminController {
      */
     static async saveBio(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = (req.user as any)._id.toString();
+            const authUser = req.user as any;
+            const userId = (authUser?._id || authUser?.id)?.toString();
             const { bio } = req.body;
+
+            if (!userId) {
+                throw new HttpError(401, "Unauthorized user context");
+            }
 
             if (!bio || !Array.isArray(bio)) {
                 throw new HttpError(400, "Bio must be an array of entries");
@@ -169,7 +174,13 @@ export class AdminController {
      */
     static async getBio(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = (req.user as any)._id.toString();
+            const authUser = req.user as any;
+            const userId = (authUser?._id || authUser?.id)?.toString();
+
+            if (!userId) {
+                throw new HttpError(401, "Unauthorized user context");
+            }
+
             const bio = await adminService.getBio(userId);
 
             return res.status(200).json({

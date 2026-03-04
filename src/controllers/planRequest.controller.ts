@@ -7,13 +7,24 @@ const planRequestService = new PlanRequestService();
 const notificationService = new NotificationService();
 
 export class PlanRequestController {
+    private static getRequestUserId(req: Request): string {
+        const user = req.user as any;
+        const rawId = user?.id ?? user?._id;
+
+        if (!rawId) {
+            throw new HttpError(401, "Unauthorized User");
+        }
+
+        return String(rawId);
+    }
+
     /**
      * POST /api/plan-requests
      * User submits a new plan request
      */
     static async createRequest(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = (req.user as any)._id.toString();
+            const userId = PlanRequestController.getRequestUserId(req);
             const {
                 requestType,
                 height,
@@ -54,7 +65,7 @@ export class PlanRequestController {
                     "plan_request",
                     "New Plan Request",
                     `${(req.user as any).fullName || "A user"} has requested a ${planType}`,
-                    (req.user as any)._id.toString(),
+                    userId,
                     result.request._id?.toString()
                 );
             } catch (notifError) {
@@ -77,7 +88,7 @@ export class PlanRequestController {
      */
     static async getMyRequests(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = (req.user as any)._id.toString();
+            const userId = PlanRequestController.getRequestUserId(req);
             const requests = await planRequestService.getUserRequests(userId);
 
             return res.status(200).json({

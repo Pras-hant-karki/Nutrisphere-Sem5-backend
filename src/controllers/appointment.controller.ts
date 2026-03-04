@@ -7,6 +7,17 @@ const appointmentService = new AppointmentService();
 const notificationService = new NotificationService();
 
 export class AppointmentController {
+    private static getRequestUserId(req: Request): string {
+        const user = req.user as any;
+        const rawId = user?.id ?? user?._id;
+
+        if (!rawId) {
+            throw new HttpError(401, "Unauthorized User");
+        }
+
+        return String(rawId);
+    }
+
     /**
      * POST /api/appointments
      * User books a new appointment
@@ -17,7 +28,7 @@ export class AppointmentController {
         next: NextFunction
     ) {
         try {
-            const userId = (req.user as any)._id.toString();
+            const userId = AppointmentController.getRequestUserId(req);
             const {
                 height,
                 weight,
@@ -55,7 +66,7 @@ export class AppointmentController {
                     "appointment_request",
                     "New Appointment Request",
                     `${(req.user as any).fullName || "A user"} has sent appointment booking request`,
-                    (req.user as any)._id.toString(),
+                    userId,
                     result.appointment._id?.toString()
                 );
             } catch (notifError) {
@@ -82,7 +93,7 @@ export class AppointmentController {
         next: NextFunction
     ) {
         try {
-            const userId = (req.user as any)._id.toString();
+            const userId = AppointmentController.getRequestUserId(req);
             const appointments =
                 await appointmentService.getUserAppointments(userId);
 

@@ -15,6 +15,32 @@ const loginUserUseCase = new LoginUserUseCase(userRepository);
 
 export class UserController {
   /**
+   * Get authenticated user profile
+   */
+  static async getMe(req: Request, res: Response, next: NextFunction) {
+    try {
+      const currentUser = req.user as any;
+      const userId = (currentUser?.id || currentUser?._id)?.toString();
+
+      if (!userId) {
+        throw new HttpError(401, "Unauthorized - User not authenticated");
+      }
+
+      const user = await userRepository.getUserById(userId);
+      if (!user) {
+        throw new HttpError(404, "User not found");
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Register a new user
    */
   static async register(req: Request, res: Response, next: NextFunction) {
@@ -108,7 +134,10 @@ export class UserController {
       if (!user) {
         throw new HttpError(404, "User not found");
       }
-      const updatedUser = await userRepository.updateUser(user.id, { profilePicture: profilePictureUrl });
+      const updatedUser = await userRepository.updateUser(user.id, {
+        profilePicture: profilePictureUrl,
+        image: profilePictureUrl,
+      });
 
       return res.status(200).json({
         success: true,
@@ -164,20 +193,29 @@ export class UserController {
       const currentUser = req.user;
       const { fullName, phone } = req.body;
       const image = req.file ? `/uploads/${req.file.filename}` : undefined;
+      const profilePicture = req.body?.profilePicture;
 
       if (!currentUser) {
         throw new HttpError(401, "Unauthorized - User not authenticated");
       }
 
+      const currentUserId = ((currentUser as any)?.id || (currentUser as any)?._id)?.toString();
+
       // Check authorization: user can only update their own profile (unless admin)
-      if (currentUser._id.toString() !== id && currentUser.role !== "admin") {
+      if (currentUserId !== id && currentUser.role !== "admin") {
         throw new HttpError(403, "Forbidden - Can only update your own profile");
       }
 
       const updateData: Partial<any> = {};
       if (fullName) updateData.fullName = fullName;
       if (phone) updateData.phone = phone;
-      if (image) updateData.image = image;
+      if (typeof profilePicture === "string" && profilePicture.trim()) {
+        updateData.profilePicture = profilePicture.trim();
+      }
+      if (image) {
+        updateData.image = image;
+        updateData.profilePicture = image;
+      }
 
       const updatedUser = await userRepository.updateUser(id, updateData);
 
