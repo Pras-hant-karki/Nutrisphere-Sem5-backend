@@ -7,11 +7,14 @@ import { LoginUserUseCase } from "../../domain/usecases/login-user.usecase";
 import { MongoUserRepository } from "../../infrastructure/database/mongo-user.repository";
 import { JWT_SECRET } from "../../config";
 import { HttpError } from "../../errors/http-error";
+import { RequestPasswordResetDTO, ResetPasswordDTO } from "../../dtos/user.dto";
+import { UserService } from "../../services/user.service";
 
 // Dependency injection - in a real app, use a DI container
 const userRepository = new MongoUserRepository();
 const registerUserUseCase = new RegisterUserUseCase(userRepository);
 const loginUserUseCase = new LoginUserUseCase(userRepository);
+const userService = new UserService();
 
 export class UserController {
   /**
@@ -223,6 +226,42 @@ export class UserController {
         success: true,
         message: "Profile updated successfully",
         user: updatedUser,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async requestPasswordReset(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const data = RequestPasswordResetDTO.parse(req.body);
+      await userService.sendResetPasswordEmail(data.email);
+
+      return res.status(200).json({
+        success: true,
+        message: "If this email exists, a reset link has been sent.",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async resetPassword(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const data = ResetPasswordDTO.parse(req.body);
+      await userService.resetPassword(data.token, data.password);
+
+      return res.status(200).json({
+        success: true,
+        message: "Password reset successfully",
       });
     } catch (error) {
       next(error);

@@ -72,3 +72,20 @@ export const UpdateUserDTO = z.object({
 }).strict();
 
 export type UpdateUserDTO = z.infer<typeof UpdateUserDTO>;
+
+export const RequestPasswordResetDTO = z.object({
+    email: z.string()
+        .email("Please enter a valid email address")
+        .toLowerCase(),
+});
+
+export type RequestPasswordResetDTO = z.infer<typeof RequestPasswordResetDTO>;
+
+export const ResetPasswordDTO = z.object({
+    token: z.string().min(1, "Token is required"),
+    password: z.string()
+        .min(6, "Password must be at least 6 characters")
+        .min(1, "Password is required"),
+});
+
+export type ResetPasswordDTO = z.infer<typeof ResetPasswordDTO>;

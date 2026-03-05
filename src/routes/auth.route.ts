@@ -8,6 +8,8 @@ const router = Router();
 
 router.post("/register", UserController.register);
 router.post("/login", UserController.login);
+router.post("/request-password-reset", UserController.requestPasswordReset);
+router.post("/reset-password", UserController.resetPassword);
 router.get("/me", authorizedMiddelWare, UserController.getMe);
 
 // Profile picture routes (protected - for both users and admins)
