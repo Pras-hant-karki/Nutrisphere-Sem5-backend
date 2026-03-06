@@ -1,16 +1,20 @@
 import mongoose from "mongoose";
 import { HttpError } from "../errors/http-error";
-import { DAYS_OF_WEEK, ISession } from "../models/session.model";
+import { DAYS_OF_WEEK, ISession, SessionDay } from "../models/session.model";
 import { SessionRepository } from "../repositories/session.repository";
 
 type SessionInput = {
-  day: string;
+  day: SessionDay;
   sessionName: string;
   timeRange: string;
   location?: string;
   workoutTitle?: string;
   exercises?: string[];
   isActive?: boolean;
+};
+
+type SessionRequestInput = Omit<SessionInput, "day"> & {
+  day: string;
 };
 
 export class SessionService {
@@ -20,7 +24,7 @@ export class SessionService {
     this.sessionRepository = new SessionRepository();
   }
 
-  private normalizeAndValidateInput(data: SessionInput): SessionInput {
+  private normalizeAndValidateInput(data: SessionRequestInput): SessionInput {
     const day = data.day?.trim();
     if (!day || !DAYS_OF_WEEK.includes(day as (typeof DAYS_OF_WEEK)[number])) {
       throw new HttpError(400, "Invalid day value");
@@ -35,7 +39,7 @@ export class SessionService {
     }
 
     return {
-      day,
+      day: day as SessionDay,
       sessionName: data.sessionName.trim(),
       timeRange: data.timeRange.trim(),
       location: (data.location || "").trim(),
@@ -58,7 +62,7 @@ export class SessionService {
     return this.sortByWeekday(sessions);
   }
 
-  async createSession(userId: string, data: SessionInput): Promise<ISession> {
+  async createSession(userId: string, data: SessionRequestInput): Promise<ISession> {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       throw new HttpError(400, "Invalid user ID");
     }
@@ -74,7 +78,7 @@ export class SessionService {
   async updateSession(
     sessionId: string,
     userId: string,
-    data: SessionInput
+    data: SessionRequestInput
   ): Promise<ISession> {
     if (!mongoose.Types.ObjectId.isValid(sessionId)) {
       throw new HttpError(400, "Invalid session ID");

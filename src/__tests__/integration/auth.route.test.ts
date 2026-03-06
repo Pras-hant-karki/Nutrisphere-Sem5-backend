@@ -38,6 +38,14 @@ jest.mock("../../infrastructure/web/auth.controller", () => ({
       if (req.body?.fail) return res.status(401).json({ success: false, message: "Login failed" });
       return res.status(200).json({ success: true, message: "Logged in", data: { token: "valid-token" } });
     },
+    requestPasswordReset: (req: any, res: any) => {
+      if (req.body?.fail) return res.status(400).json({ success: false, message: "Reset request failed" });
+      return res.status(200).json({ success: true, message: "Reset link sent" });
+    },
+    resetPassword: (req: any, res: any) => {
+      if (req.body?.fail) return res.status(400).json({ success: false, message: "Reset failed" });
+      return res.status(200).json({ success: true, message: "Password reset" });
+    },
     getMe: (_req: any, res: any) => res.status(200).json({ success: true, message: "Me", data: { id: "u1" } }),
     uploadProfilePicture: (_req: any, res: any) => res.status(200).json({ success: true, message: "Uploaded", data: { image: "x" } }),
     getProfilePicture: (_req: any, res: any) => res.status(200).json({ success: true, message: "Profile", data: { image: "x" } }),
