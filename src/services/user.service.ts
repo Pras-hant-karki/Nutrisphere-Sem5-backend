@@ -1,97 +1,126 @@
-import { CreateUserDTO, LoginUserDTO } from "../dtos/user.dto";
-import { UserRepository } from "../repositories/user.repository";
-import bcrypt from "bcryptjs";
+import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config";
 import { HttpError } from "../errors/http-error";
+import { RegisterUserDTO, LoginUserDTO, UpdateUserDTO } from "../dtos/user.dto";
+import { UserRepository } from "../repositories/user.repository";
+import { email } from "zod";
 
-const userRepository = new UserRepository();
+let userRepository = new UserRepository();
 
 export class UserService {
-  private generateToken(userId: any, email: string, role: string): string {
-    return jwt.sign(
-      {
-        id: userId,
-        email,
-        role,
-      },
-      JWT_SECRET,
-      { expiresIn: "30d" }
-    );
+  async registerUser(data: RegisterUserDTO) {
+    // logic to register user, duplicate check, hash password
+    const existingEmail = await userRepository.getUserByEmail(data.email);
+    if (existingEmail) {
+      throw new HttpError(403, "Email already registered.");
+    }
+
+    // donot save plain text password, hash the password
+    const hashedPassword = await bcryptjs.hash(data.password, 10); // 10 - complexity
+    data.password = hashedPassword; // replace plain text with hashed password
+
+    const newUser = await userRepository.createUser(data);
+    return newUser;
   }
 
-  async createUser(data: CreateUserDTO) {
-    try {
-      const existingUser = await userRepository.getUserByEmail(data.email);
-      if (existingUser) {
-        throw new HttpError(409, "This email is already registered");
-      }
-
-      const hashedPassword = await bcrypt.hash(data.password, 10);
-
-      const user = await userRepository.createUser({
-        fullName: data.fullName,
-        email: data.email,
-        password: hashedPassword,
-        role: "user",
-        isActive: true, // ✅ FIX
-      });
-
-      const token = this.generateToken(user._id, user.email, user.role);
-
-      return {
-        token,
-        user: {
-          id: user._id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role,
-        },
-      };
-    } catch (error: any) {
-      if (error.statusCode) throw error;
-      if (error.code === 11000) {
-        throw new HttpError(409, "This email is already registered");
-      }
-      throw new HttpError(500, "Error creating account");
+  async LoginUser(data: LoginUserDTO) {
+    const user = await userRepository.getUserByEmail(data.email);
+    if (!user) {
+      throw new HttpError(404, "User not found.");
     }
+    const validPassword = await bcryptjs.compare(data.password, user.password);
+    // plain text, hashed, not data.password == user.password
+    if (!validPassword) {
+      throw new HttpError(401, "Invalid credentials");
+    }
+
+    // generate JWT token
+    const payload = {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+    }; // data to be stored in token
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "30d" });
+    return { token, user };
   }
 
-  async loginUser(data: LoginUserDTO) {
-    try {
-      const user = await userRepository.getUserByEmail(data.email);
-      if (!user) {
-        throw new HttpError(401, "Invalid email or password");
-      }
-
-      // if (!user.isActive) {
-      //   throw new HttpError(403, "Account is disabled");
-      // }
-
-      const isPasswordValid = await bcrypt.compare(
-        data.password,
-        user.password
-      );
-      if (!isPasswordValid) {
-        throw new HttpError(401, "Invalid email or password");
-      }
-
-      const token = this.generateToken(user._id, user.email, user.role);
-      await userRepository.updateLastLogin(user._id);
-
-      return {
-        token,
-        user: {
-          id: user._id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role,
-        },
-        message: "Login successful",
-      };
-    } catch (error: any) {
-      if (error.statusCode) throw error;
-      throw new HttpError(500, "Login failed");
+      async getUserByEmail(email: string){
+        if(!email){
+            throw new HttpError(400, "Email is required");
+        }
+        const user = await userRepository.getUserByEmail(email);
+        if(!user){
+            throw new HttpError(404, "User not found");
+        }
+        return user;
     }
+
+    async updateUser(email: string, data: UpdateUserDTO){
+        if(data.email && data.email !== email){
+            const emailExists = await userRepository.getUserByEmail(data.email);
+            if(emailExists){
+                throw new HttpError(409, "Email already exists");
+            }
+        }
+        if(data.password){
+            const hashedPassword = await bcryptjs.hash(data.password, 10);
+            data.password = hashedPassword;
+        }
+        const updatedUser = await userRepository.updateUserByEmail(email, data);
+        return updatedUser;
+    }
+
+  async getCurrentUser(email: string) {
+    const user = await userRepository.getUserByEmail(email);
+    if (!user) {
+      throw new HttpError(404, "User not found");
+    }
+
+    return user;
+  }
+
+  async updateProfilePicture(email: string, profilePictureUrl: string) {
+    const user = await userRepository.getUserByEmail(email);
+    if (!user) {
+      throw new HttpError(404, "User not found");
+    }
+
+    const updatedUser = await userRepository.updateUserByEmail(email, { profilePicture: profilePictureUrl });
+    return updatedUser;
+  }
+
+  async getProfilePicture(email: string) {
+    const user = await userRepository.getUserByEmail(email);
+    if (!user) {
+      throw new HttpError(404, "User not found");
+    }
+
+    return user.profilePicture;
+  }
+
+  /**
+   * Update user profile by ID (fullName, phone, image)
+   * Used by authenticated users to update their own profile
+   */
+  async updateUserProfile(
+    userId: string,
+    fullName?: string,
+    phone?: string,
+    image?: string
+  ) {
+    const user = await userRepository.getUserById(userId);
+    if (!user) {
+      throw new HttpError(404, "User not found");
+    }
+
+    // Build update object with only provided fields
+    const updateData: any = {};
+    if (fullName !== undefined) updateData.fullName = fullName;
+    if (phone !== undefined) updateData.phone = phone;
+    if (image !== undefined) updateData.image = image;
+
+    const updatedUser = await userRepository.updateUserById(userId, updateData);
+    return updatedUser;
   }
 }

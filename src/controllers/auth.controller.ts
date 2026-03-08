@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { CreateUserDTO, LoginUserDTO } from "../dtos/user.dto";
+import { RegisterUserDTO, LoginUserDTO } from "../dtos/user.dto";
 import { UserService } from "../services/user.service";
+import { HttpError } from "../errors/http-error";
 
 const userService = new UserService();
 
@@ -11,10 +12,10 @@ export class UserController {
   static async register(req: Request, res: Response, next: NextFunction) {
     try {
       // Validate request body
-      const data = CreateUserDTO.parse(req.body);
+      const data = RegisterUserDTO.parse(req.body);
 
       // Create user
-      const result = await userService.createUser(data);
+      const result = await userService.registerUser(data);
 
       return res.status(201).json({
         success: true,
@@ -33,13 +34,119 @@ export class UserController {
     try {
       // Validate request body
       const data = LoginUserDTO.parse(req.body);
-
+ 
       // Authenticate user
-      const result = await userService.loginUser(data);
+      const result = await userService.LoginUser(data);
 
       return res.status(200).json({
         success: true,
         ...result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Upload profile picture for user or admin
+   * Both users and admins can upload their profile picture
+   */
+  static async uploadProfilePicture(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      if (!req.file) {
+        throw new HttpError(400, "No file uploaded");
+      }
+
+      const email = req.user?.email;
+      if (!email) {
+        throw new HttpError(401, "Unauthorized - User email not found");
+      }
+
+      // Get the file path relative to uploads folder
+      const profilePictureUrl = `/profile_pictures/${req.file.filename}`;
+
+      // Update profile picture in database
+      const updatedUser = await userService.updateProfilePicture(
+        email,
+        profilePictureUrl
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Profile picture uploaded successfully",
+        profilePictureUrl: profilePictureUrl,
+        user: updatedUser,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get profile picture for user or admin
+   */
+  static async getProfilePicture(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const email = req.user?.email;
+      if (!email) {
+        throw new HttpError(401, "Unauthorized - User email not found");
+      }
+
+      const profilePictureUrl = await userService.getProfilePicture(email);
+
+      return res.status(200).json({
+        success: true,
+        profilePictureUrl: profilePictureUrl,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * PUT /api/auth/:id
+   * Update user profile (image, fullName, phone, etc)
+   * Only logged-in user can update their own profile unless admin
+   */
+  static async updateProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.params;
+      const currentUser = req.user;
+      const { fullName, phone } = req.body;
+      const image = req.file ? `/uploads/${req.file.filename}` : undefined;
+
+      if (!currentUser) {
+        throw new HttpError(401, "Unauthorized - User not authenticated");
+      }
+
+      // Check authorization: user can only update their own profile (unless admin)
+      if (currentUser._id.toString() !== id && currentUser.role !== "admin") {
+        throw new HttpError(403, "Forbidden - Can only update your own profile");
+      }
+
+      const result = await userService.updateUserProfile(
+        id,
+        fullName,
+        phone,
+        image
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Profile updated successfully",
+        user: result,
       });
     } catch (error) {
       next(error);

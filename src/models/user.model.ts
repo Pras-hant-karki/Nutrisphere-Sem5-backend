@@ -16,7 +16,6 @@ const UserSchema: Schema = new Schema<UserType>(
             unique: true,
             lowercase: true,
             trim: true,
-            match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, "Please enter a valid email"]
         },
         password: { 
             type: String, 
@@ -31,17 +30,74 @@ const UserSchema: Schema = new Schema<UserType>(
                 message: "Role must be either 'user' or 'admin'"
             },
             default: 'user',
+        },
+        profilePicture: {
+            type: String,
+            default: null,
+            trim: true
+        },
+        image: {
+            type: String,
+            default: null,
+            trim: true
+        },
+        phone: {
+            type: String,
+            default: null,
+            trim: true
+        },
+        isActive: {
+            type: Boolean,
+            default: true
+        },
+        lastLogin: {
+            type: Date,
+            default: null
+        },
+        bio: {
+            type: [
+                {
+                    type: {
+                        type: String,
+                        enum: ['text', 'image'],
+                        required: true
+                    },
+                    content: {
+                        type: String,
+                        required: true
+                    },
+                    createdAt: {
+                        type: Date,
+                        default: Date.now
+                    }
+                }
+            ],
+            default: []
         }
     },
     { timestamps: true }
 );
 
+export interface IBioEntry {
+    type: 'text' | 'image';
+    content: string;
+    createdAt: Date;
+}
+
 export interface IUser extends UserType, Document {
     _id: mongoose.Types.ObjectId;
+    fullName: string;
+    email: string;
+    password: string;
+    role: 'user' | 'admin';
+    profilePicture?: string | null;
+    image?: string | null;
+    phone?: string | null;
     createdAt: Date;
     updatedAt: Date;
-    isActive: Boolean;
+    isActive: boolean;
     lastLogin: Date | null;
+    bio: IBioEntry[];
 }
 
 export const UserModel = mongoose.model<IUser>('User', UserSchema);

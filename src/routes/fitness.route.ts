@@ -1,0 +1,66 @@
+import { Router } from "express";
+import { FitnessContentController } from "../controllers/fitnessContent.controller";
+import { authorizedMiddelWare, optionalAuthorizedMiddelWare } from "../middelwares/authorized.middelware";
+import { upload } from "../middelwares/upload.middelware";
+
+const router = Router();
+
+/**
+ * Public Routes (No authentication required)
+ */
+
+// Get all published fitness content
+router.get("/", optionalAuthorizedMiddelWare, FitnessContentController.getAllContent);
+
+// Get fitness content by specific tag
+router.get("/tag/:tag", FitnessContentController.getContentByTag);
+
+// Get fitness content by specific admin
+router.get("/admin/:adminId", FitnessContentController.getContentByAdmin);
+
+// Get single fitness content by ID
+router.get("/:contentId", FitnessContentController.getContentById);
+
+/**
+ * Admin Only Routes
+ */
+
+// Create fitness content (Admin only)
+router.post(
+  "/",
+  authorizedMiddelWare,
+  upload.single("fitnessPhoto"),
+  FitnessContentController.createContent
+);  
+
+// Upload only photo (stores file and returns path)
+router.post(
+  "/upload-photo",
+  authorizedMiddelWare,
+  upload.single("fitnessPhoto"),
+  FitnessContentController.uploadPhoto
+);
+
+// Upload only video (stores file and returns path)
+router.post(
+  "/upload-video",
+  authorizedMiddelWare,
+  upload.single("fitnessVideo"),
+  FitnessContentController.uploadVideo
+);
+
+// Update fitness content (Admin only - owner)
+router.put(
+    "/:contentId",
+    authorizedMiddelWare,
+    FitnessContentController.updateContent
+);
+
+// Delete fitness content (Admin only - owner)
+router.delete(
+    "/:contentId",
+    authorizedMiddelWare,
+    FitnessContentController.deleteContent
+);
+
+export default router;
