@@ -19,16 +19,22 @@ export class FitnessContentController {
                 throw new HttpError(403, "Only admins can create fitness content");
             }
 
-            // Check if image file was uploaded (optional)
+            // Check if media file was uploaded (optional)
             let imagePath: string | undefined;
+            let videoPath: string | undefined;
             if (req.file) {
-                imagePath = `/fitness_photos/${req.file.filename}`;
+                if (req.file.fieldname === 'fitnessVideo') {
+                    videoPath = `/fitness_videos/${req.file.filename}`;
+                } else {
+                    imagePath = `/fitness_photos/${req.file.filename}`;
+                }
             }
 
-            // Prepare the data with optional image path
+            // Prepare the data with optional media path
             const bodyData = {
                 ...req.body,
-                ...(imagePath && { image: imagePath })
+                ...(imagePath && { image: imagePath }),
+                ...(videoPath && { video: videoPath })
             };
 
             // Validate request body
@@ -115,7 +121,7 @@ export class FitnessContentController {
                 throw new HttpError(400, "Video file is required");
             }
 
-            const videoPath = `/fitness_photos/${req.file.filename}`;
+            const videoPath = `/fitness_videos/${req.file.filename}`;
 
             return res.status(201).json({
                 success: true,
