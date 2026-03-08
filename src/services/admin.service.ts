@@ -1,4 +1,4 @@
-import { IUser } from "../models/user.model";
+import { IUser } from "../infrastructure/database/user.model";
 import { UserRepository } from "../repositories/user.repository";
 import { HttpError } from "../errors/http-error";
 import bcryptjs from "bcryptjs";

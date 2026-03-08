@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { UserController } from "../controllers/auth.controller";
+import { UserController } from "../infrastructure/web/auth.controller";
 import { authorizedMiddelWare } from "../middelwares/authorized.middelware";
 import { uploads } from "../middelwares/upload.middelware";
 import { uploadSingle } from "../config/multer";
@@ -8,6 +8,9 @@ const router = Router();
 
 router.post("/register", UserController.register);
 router.post("/login", UserController.login);
+router.post("/request-password-reset", UserController.requestPasswordReset);
+router.post("/reset-password", UserController.resetPassword);
+router.get("/me", authorizedMiddelWare, UserController.getMe);
 
 // Profile picture routes (protected - for both users and admins)
 router.post(

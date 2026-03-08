@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateFitnessContentDTO, UpdateFitnessContentDTO } from "../dtos/fitnessContent.dto";
 import { FitnessContentService } from "../services/fitnessContent.service";
+import { NotificationService } from "../services/notification.service";
 import { HttpError } from "../errors/http-error";
 import mongoose from "mongoose";
 
 const fitnessContentService = new FitnessContentService();
+const notificationService = new NotificationService();
 
 export class FitnessContentController {
     /**
@@ -17,16 +19,22 @@ export class FitnessContentController {
                 throw new HttpError(403, "Only admins can create fitness content");
             }
 
-            // Check if image file was uploaded (optional)
+            // Check if media file was uploaded (optional)
             let imagePath: string | undefined;
+            let videoPath: string | undefined;
             if (req.file) {
-                imagePath = `/fitness_photos/${req.file.filename}`;
+                if (req.file.fieldname === 'fitnessVideo') {
+                    videoPath = `/fitness_videos/${req.file.filename}`;
+                } else {
+                    imagePath = `/fitness_photos/${req.file.filename}`;
+                }
             }
 
-            // Prepare the data with optional image path
+            // Prepare the data with optional media path
             const bodyData = {
                 ...req.body,
-                ...(imagePath && { image: imagePath })
+                ...(imagePath && { image: imagePath }),
+                ...(videoPath && { video: videoPath })
             };
 
             // Validate request body
@@ -35,7 +43,7 @@ export class FitnessContentController {
             // Transform frontend fields to backend fields
             const transformedData = { ...data };
             if (data.category && !data.tags) {
-                transformedData.tags = [data.category];
+                transformedData.tags = [data.category as any];
             }
             if (data.media && data.mediaType) {
                 if (data.mediaType === 'image') {
@@ -51,6 +59,19 @@ export class FitnessContentController {
                 req.user.fullName,
                 transformedData
             );
+
+            // Send notification to all users about new post
+            try {
+                await notificationService.notifyAllUsers(
+                    "new_post",
+                    "New Fitness Post",
+                    "New post created by Trainer, time to get new knowledge!",
+                    req.user._id.toString(),
+                    result._id?.toString()
+                );
+            } catch (notifError) {
+                console.error("Failed to send notification:", notifError);
+            }
 
             return res.status(201).json({
                 success: true,
@@ -100,7 +121,7 @@ export class FitnessContentController {
                 throw new HttpError(400, "Video file is required");
             }
 
-            const videoPath = `/fitness_photos/${req.file.filename}`;
+            const videoPath = `/fitness_videos/${req.file.filename}`;
 
             return res.status(201).json({
                 success: true,
@@ -241,7 +262,7 @@ export class FitnessContentController {
             // Transform frontend fields to backend fields
             const transformedData = { ...data };
             if (data.category && !data.tags) {
-                transformedData.tags = [data.category];
+                transformedData.tags = [data.category as any];
             }
             if (data.media && data.mediaType) {
                 if (data.mediaType === 'image') {

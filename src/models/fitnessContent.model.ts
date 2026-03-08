@@ -6,8 +6,7 @@ export interface IFitnessContent extends Document {
     description: string;
     content: string; // Main content/body
     image?: string; // Image URL
-    // video?: string; // Video URL
-    // adminId: mongoose.Types.ObjectId; // Reference to admin user
+    video?: string; // Video URL
     adminName: string; // Admin's name for quick access
     tags?: string[]; // Tags like 'cardio', 'strength', 'yoga', etc.
     duration?: number;
@@ -39,19 +38,20 @@ const FitnessContentSchema: Schema = new Schema<IFitnessContent>(
         },
         image: {
             type: String,
-            required: [true, "Image is required"],
+            default: null,
+            required: function(this: IFitnessContent) {
+                return !this.video;
+            },
             trim: true
         },
-        // video: {
-        //     type: String,
-        //     default: null,
-        //     trim: true
-        // },
-        // adminId: {
-        //     type: mongoose.Schema.Types.ObjectId,
-        //     ref: "User",
-        //     required: [true, "Admin ID is required"]
-        // },
+        video: {
+            type: String,
+            default: null,
+            required: function(this: IFitnessContent) {
+                return !this.image;
+            },
+            trim: true
+        },
         adminName: {
             type: String,
             required: [true, "Admin name is required"],
@@ -67,16 +67,6 @@ const FitnessContentSchema: Schema = new Schema<IFitnessContent>(
             default: null, // in minutes
             min: [1, "Duration must be at least 1 minute"]
         },
-        // likes: {
-        //     type: Number,
-        //     default: 0,
-        //     min: [0, "Likes cannot be negative"]
-        // },
-        // views: {
-        //     type: Number,
-        //     default: 0,
-        //     min: [0, "Views cannot be negative"]
-        // },
         isPublished: {
             type: Boolean,
             default: true

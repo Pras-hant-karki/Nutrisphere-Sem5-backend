@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { AdminService } from "../services/admin.service";
+import { NotificationService } from "../services/notification.service";
 import { HttpError } from "../errors/http-error";
 
 const adminService = new AdminService();
+const notificationService = new NotificationService();
 
 export class AdminController {
     /**
@@ -131,14 +133,31 @@ export class AdminController {
      */
     static async saveBio(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = (req.user as any)._id.toString();
+            const authUser = req.user as any;
+            const userId = (authUser?._id || authUser?.id)?.toString();
             const { bio } = req.body;
+
+            if (!userId) {
+                throw new HttpError(401, "Unauthorized user context");
+            }
 
             if (!bio || !Array.isArray(bio)) {
                 throw new HttpError(400, "Bio must be an array of entries");
             }
 
             const result = await adminService.saveBio(userId, bio);
+
+            // Notify all users about trainer bio update
+            try {
+                await notificationService.notifyAllUsers(
+                    "trainer_update",
+                    "Trainer Profile Updated",
+                    "Trainer details updated, get to know more about your Trainer!",
+                    userId
+                );
+            } catch (notifError) {
+                console.error("Failed to send notification:", notifError);
+            }
 
             return res.status(200).json({
                 success: true,
@@ -155,7 +174,13 @@ export class AdminController {
      */
     static async getBio(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = (req.user as any)._id.toString();
+            const authUser = req.user as any;
+            const userId = (authUser?._id || authUser?.id)?.toString();
+
+            if (!userId) {
+                throw new HttpError(401, "Unauthorized user context");
+            }
+
             const bio = await adminService.getBio(userId);
 
             return res.status(200).json({

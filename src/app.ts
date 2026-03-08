@@ -7,13 +7,16 @@ import authRoutes from "./routes/auth.route";
 import fitnessRoutes from "./routes/fitness.route";
 import adminRoutes from "./routes/admin.route";
 import planRequestRoutes from "./routes/planRequest.route";
+import appointmentRoutes from "./routes/appointment.route";
+import notificationRoutes from "./routes/notification.route";
+import sessionRoutes from "./routes/session.route";
 
 const app: Application = express();
 
 // CORS
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3030"],
+    origin: true, // Allow all origins for development
   })
 );
 
@@ -32,6 +35,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/fitness", fitnessRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/plan-requests", planRequestRoutes);
+app.use("/api/appointments", appointmentRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/sessions", sessionRoutes);
 
 // Root
 app.get("/", (req: Request, res: Response) => {

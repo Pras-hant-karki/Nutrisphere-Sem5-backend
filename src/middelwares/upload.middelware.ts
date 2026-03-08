@@ -13,6 +13,14 @@ const getUploadDir = (fieldName: string) => {
         }
         return profileDir;
     }
+
+    if (fieldName === 'fitnessVideo') {
+        const fitnessVideoDir = path.join(__dirname, '../../public/fitness_videos');
+        if (!fs.existsSync(fitnessVideoDir)) {
+            fs.mkdirSync(fitnessVideoDir, { recursive: true });
+        }
+        return fitnessVideoDir;
+    }
     
     // Default to fitness_photos for all other uploads
     const fitnessDir = path.join(__dirname, '../../public/fitness_photos');
@@ -55,7 +63,8 @@ const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.
 export const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
-    limits: { fileSize: 5 * 1024 * 1024 } // 5 MB limit
+    // Allow practical video sizes from phone cameras while keeping a hard cap.
+    limits: { fileSize: 50 * 1024 * 1024 }
 });
 
 export const uploads = {
